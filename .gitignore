@@ -1,0 +1,16 @@
+a.out
+*.o
+gmon.out
+
+log
+*.swp
+
+^*
+.depend/
+.valgrind.log
+
+template.aux
+template.log
+template.aux
+
+experiment

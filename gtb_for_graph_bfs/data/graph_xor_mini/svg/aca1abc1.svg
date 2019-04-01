@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<svg x="0" y="0" viewBox="150 150 300 300" version="1.1" xmlns="http://www.w3.org/2000/svg">
+
+	<g stroke="black" stroke-width="3" fill="none" >
+		<path d="M 200 200 l 100 0" stroke-dasharray="0" />
+		<path d="M 300 200 l 100 0" stroke-dasharray="0" />
+		<path d="M 200 400 l 100 0" stroke-dasharray="0" />
+		<path d="M 300 400 l 100 0" stroke-dasharray="0" />
+		<path d="M 300 300 l -100 -100" stroke-dasharray="0" />
+		<path d="M 300 300 l -100 100" stroke-dasharray="0" />
+	</g>
+
+	<g stroke="black" stroke-width="3" >
+		<circle cx="200" cy="200" r="32" fill="white" />
+		<text x='200' y='205' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >A</text>
+		<circle cx="300" cy="200" r="32" fill="white" />
+		<text x='300' y='205' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >C</text>
+		<circle cx="400" cy="200" r="32" fill="white" />
+		<text x='400' y='205' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >A</text>
+		<circle cx="200" cy="400" r="32" fill="white" />
+		<text x='200' y='405' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >A</text>
+		<circle cx="300" cy="400" r="32" fill="white" />
+		<text x='300' y='405' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >B</text>
+		<circle cx="400" cy="400" r="32" fill="white" />
+		<text x='400' y='405' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >C</text>
+		<circle cx="300" cy="300" r="32" fill="white" />
+		<text x='300' y='305' fill='black' font-size='56' stroke-width='1' text-anchor='middle' dominant-baseline='middle' >D</text>
+	</g>
+
+</svg>

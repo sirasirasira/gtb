@@ -1,0 +1,6 @@
+raw_ys = 真値
+y_predictions = 予測値
+ys = 勾配
+additive_ys = 勾配に対してフィッティングした値
+
+cacheの末端gainの計算はpq_enum
