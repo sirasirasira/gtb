@@ -1,4 +1,4 @@
-raw_ys = 真値
-y_predictions = 予測値
-ys = 勾配
-additive_ys = 勾配に対してフィッティングした値
+raw_ys = 真値 (size all)
+y_predictions = 予測値 (size all)
+ys = 勾配 (size train)
+additive_ys = 勾配に対してフィッティングした値 (size all)

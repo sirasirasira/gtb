@@ -1,34 +1,48 @@
-CXX = g++
-D_DIR = .depend
-CXXFLAGS_BASE = -W -Wall -std=c++11 -MMD -MP -MF $(D_DIR)/$*.d
-# -Wno-deprecated 
-CXXFLAGS = -O3 -DNDEBUG $(CXXFLAGS_BASE)
-#CXXFLAGS = -pg -g $(CXXFLAGS_BASE)
+# GNUmakefile
+# (c) R.Shirakawa 2019.1
+
+COMPILER = g++
+CFLAGS_BASE = -W -Wall -std=c++11 -MMD -MP -MF
+CFLAGS = -O3 -DNDEBUG $(CFLAGS_BASE)
 LDFLAGS = -pg
-TARGETS = a.out
-SRCS = $(wildcard *.cpp)
-OBJDIR = .objs
-OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.cpp=.o))
+LIBS =
 
-all : $(TARGETS)
+SRC_DIR = src
+INC_DIR = include
+OBJ_DIR = .obj
+DPN_DIR = .depend
+EXE_DIR = bin
 
--include $(D_DIR)/*
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
+DPNS = $(addprefix $(DPN_DIR)/, $(notdir $(SRCS:.cpp=.d)))
+TARGETS = $(EXE_DIR)/a.out
 
-$(TARGETS) : $(OBJDIR)  $(OBJS)
-	${CXX} ${LDFLAGS} -o ${TARGETS} ${OBJS}
+all: $(TARGETS)
 
-$(OBJDIR)/%.o : %.cpp
-	${CXX} ${CXXFLAGS} -c -o $@ $<
+$(TARGETS): $(OBJ_DIR) $(DPN_DIR) $(EXE_DIR) $(OBJS)
+	$(COMPILER) $(LDFLAGS) -o $(TARGETS) $(OBJS)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(COMPILER) $(CFLAGS) $(DPN_DIR)/$*.d -I$(INC_DIR) -o $@ -c $<
 
 .PHONY: cln
-cln : clean
+cln: clean
+
 .PHONY: clean
 clean:
-	rm -f ${TARGETS} ${OBJS} $(D_DIR)/* *~
+	rm -f $(OBJS) $(DPNS) $(TARGETS) *~
 
 .PHONY: re
-re : clean all
+re: clean all
 
-$(OBJDIR) :
-	mkdir -p $(OBJDIR)
-	mkdir -p $(D_DIR)
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(DPN_DIR):
+	mkdir -p $(DPN_DIR)
+
+$(EXE_DIR):
+	mkdir -p $(EXE_DIR)
+
+-include $(DPNS)
