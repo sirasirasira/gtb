@@ -33,6 +33,33 @@ void CLASS::run(Pattern _pattern) {
 	edgeGrow(cache[_pattern].g2tracers, true);
 }
 
+void CLASS::searche1Patterns() {
+	auto& gdata = db.gdata;
+	map<Triplet, GraphToTracers> heap;
+	for (ID gid = 0; gid < (ID) gdata.size(); gid++) {
+		EdgeTracer cursor;
+		Graph& g = gdata[gid];
+		for (ID vid = 0; vid < (ID) g.size(); vid++) {
+			for (auto e : g[vid]) {
+				if (e.labels.x <= e.labels.z) {
+					cursor.set(vid, e.to, e.id, nullptr);
+					heap[e.labels][gid].push_back(cursor);
+				}
+			}
+		}
+	}
+	pattern.resize(1);
+
+	for (auto itr = heap.begin(); itr != heap.end(); itr++) {
+		if (support(itr->second) < minsup) {
+			continue;
+		}
+		pattern[0].labels = itr->first;
+		pattern[0].time.set(0, 1);
+		e1patterns.push_back(pattern);
+	}
+}
+
 size_t CLASS::support(GraphToTracers& g2tracers) {
 	size_t support = 0;
 	for (auto x : g2tracers) {

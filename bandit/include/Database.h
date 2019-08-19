@@ -12,9 +12,9 @@
 
 struct Database {
 	GraphData gdata;
-	vector<double> raw_ys;
+	vector<double> raw_ys; // true value
 	vector<double> ys; // residual error
-	vector<double> y_predictions;
+	vector<double> y_predictions; // predict value
 
 	GradientBoosting gradient_boosting;
 	Planter planter;

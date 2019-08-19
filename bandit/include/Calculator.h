@@ -70,11 +70,7 @@ namespace Calculator {
 	}
 
 	inline double imp(const vector<double>& ys, const vector<ID>& train_targets) {
-		if (setting.random_forest) {
-			return TSD(ys, train_targets);
-		} else {
-			return TSS(ys, train_targets);
-		}
+		return TSS(ys, train_targets);
 	}
 
 	// assert raw is sorted

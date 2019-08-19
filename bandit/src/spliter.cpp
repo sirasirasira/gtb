@@ -15,14 +15,11 @@ void CLASS::initMinScore() {
 void CLASS::prepare(const vector<ID>& _targets) {
 	// std::cout << "debug Spliter prepare" << std::endl; // debug
 	targets = _targets;
-	initMinScore();
 	// Debug::IDs(targets); // debug
+	initMinScore();
 	db.gspan.setSpliterPtr(this);
-	db.gspan.minsup = setting.minsup;
-	db.gspan.maxpat = 3;
-	db.gspan.run();
-	db.gspan.maxpat = setting.maxpat;
-	std::cout << "prepare cache size: " << db.gspan.getCache().size() << std::endl;
+	db.gspan.searche1Patterns();
+	//std::cout << "prepare cache size: " << db.gspan.getCache().size() << std::endl;
 }
 
 vector<ID> CLASS::run(const vector<ID>& _targets) {
@@ -31,13 +28,12 @@ vector<ID> CLASS::run(const vector<ID>& _targets) {
 	best_pattern = {};
 	initMinScore();
 	if (min_score < 0) {
-		goto G_INVALID;
+		valid_flg = false;
+		return {};
 	}
-	searchCashe();
-	searchEnum();
+	UCT();
 	// std::cout << "debug best_pattern " << best_pattern << std::endl; // debug
 	if (best_pattern.size() == 0) {
-G_INVALID:
 		valid_flg = false;
 		return {};
 	}
@@ -47,8 +43,9 @@ G_INVALID:
 	return Calculator::setIntersec(targets, posi);
 }
 
-void CLASS::searchCashe() {
-	const auto& cache = db.gspan.getCache();
+void CLASS::UCT() {
+	auto& cache = db.gspan.getCache();
+	auto& e1patterns = db.gspan.gete1Patterns();
 	for (auto itr = cache.begin(); itr != cache.end(); itr++) {
 		const auto& pattern = itr->first;
 		const auto& tracers = itr->second.g2tracers;
@@ -90,9 +87,6 @@ void CLASS::searchEnum() {
 }
 
 void CLASS::update(Pattern pattern, vector<ID> posi) {
-	if (Dice::p(setting.feature_used) == false) {
-		return;
-	}
 	double score = Calculator::score(db.ys, targets, posi);
 	if (score < min_score ) { // old pattern may be used (this func is called from gspan)
 		min_score = score;

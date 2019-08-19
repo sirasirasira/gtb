@@ -79,12 +79,10 @@ int main(int argc, char** argv) {
 		+ " [-s (double) shrinkage]"
 		+ " [-n (double) needed_impurity_decrease]"
 		+ " [-d max_depth]"
-		+ " [-p (double) data_used]"
-		+ " [-f (double) feature_used]"
 		+ " traing_data_file"
 		+ " test_data_file"
 		+ "";
-	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:p:f:ri")) != -1) {
+	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:i:re")) != -1) {
 		switch (opt) {
 			case 'm':
 				//setting.minsup = atoi(optarg);
@@ -105,11 +103,8 @@ int main(int argc, char** argv) {
 			case 'd':
 				setting.max_depth = atoi(optarg);
 				break;
-			case 'p':
-				setting.data_used = atof(optarg);
-				break;
-			case 'f':
-				setting.feature_used = atof(optarg);
+			case 'i':
+				setting.iteration = atoi(optarg);
 				break;
 			default:
 				std::cerr << usage << std::endl;
@@ -141,12 +136,11 @@ int main(int argc, char** argv) {
 
 	if (setting.minsup == 0) {
 		setting.minsup = 1;
-	} else {
-		setting.minsup = int(db.gdata.num_train * setting.minsup * 0.01);
+	} else if (0 < setting.minsup and setting.minsup < 1) {
+		setting.minsup = int(db.gdata.num_train * setting.minsup);
 	}
 	setting.print();
 
-	db.spliter.prepare(allTargets());
 	db.gspan.minsup = setting.minsup;
 	db.gspan.maxpat = setting.maxpat;
 	db.gradient_boosting.run();

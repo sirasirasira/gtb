@@ -10,6 +10,7 @@ extern Database db;
 void CLASS::run() {
 	// std::cout << "debug run" << std::endl; // debug
 	makeTargets();
+	db.spliter.prepare(train_targets);
 	plantFirst();
 	for (tree_count = 1; tree_count <= setting.num_of_trees; tree_count++) {
 		calcResidualErrors();
@@ -31,7 +32,8 @@ void CLASS::makeTargets() {
 	for (id = db.gdata.getFirstTestID(); id <= db.gdata.getLastTestID(); id++) {
 		test_targets.push_back(id);
 	}
-	// Debug::IDs(targets); // debug
+	// Debug::IDs(train_targets); // debug
+	// Debug::IDs(test_targets); // debug
 }
 
 void CLASS::plantFirst() {
