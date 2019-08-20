@@ -6,8 +6,9 @@
 #include "GradientBoosting.h"
 #include "Planter.h"
 #include "Spliter.h"
-#include "Finder.h"
+#include "UCT.h"
 #include "Gspan.h"
+#include "Finder.h"
 #include "Evaluater.h"
 
 struct Database {
@@ -19,7 +20,8 @@ struct Database {
 	GradientBoosting gradient_boosting;
 	Planter planter;
 	Spliter spliter;
-	Finder finder;
+	UCT uct;
 	Gspan gspan;
+	Finder finder;
 	Evaluater eva;
 };

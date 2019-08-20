@@ -16,7 +16,6 @@ void CLASS::prepare(const vector<ID>& _targets) {
 	// std::cout << "debug Spliter prepare" << std::endl; // debug
 	targets = _targets;
 	// Debug::IDs(targets); // debug
-	initMinScore();
 	db.gspan.setSpliterPtr(this);
 	db.gspan.searche1Patterns();
 	//std::cout << "prepare cache size: " << db.gspan.getCache().size() << std::endl;
@@ -31,7 +30,7 @@ vector<ID> CLASS::run(const vector<ID>& _targets) {
 		valid_flg = false;
 		return {};
 	}
-	UCT();
+	db.uct.run(targets);
 	// std::cout << "debug best_pattern " << best_pattern << std::endl; // debug
 	if (best_pattern.size() == 0) {
 		valid_flg = false;
@@ -41,49 +40,6 @@ vector<ID> CLASS::run(const vector<ID>& _targets) {
 	valid_flg = true;
 	vector<ID> posi = db.gspan.getPosiIds(db.gspan.getCache().at(best_pattern).g2tracers);
 	return Calculator::setIntersec(targets, posi);
-}
-
-void CLASS::UCT() {
-	auto& cache = db.gspan.getCache();
-	auto& e1patterns = db.gspan.gete1Patterns();
-	for (auto itr = cache.begin(); itr != cache.end(); itr++) {
-		const auto& pattern = itr->first;
-		const auto& tracers = itr->second.g2tracers;
-		double score = Calculator::score(db.ys, targets, db.gspan.getPosiIds(tracers));
-		if (score < min_score) {
-			min_score = score;
-			best_pattern = pattern;
-		}
-	}
-}
-
-bool CLASS::isFrontier(const Pattern& pattern, const Pattern& bef_pattern) {
-	if (bef_pattern.size() - 1 == pattern.size()) {
-		return false;
-	}
-	return true;
-}
-
-void CLASS::searchEnum() {
-	const auto& cache = db.gspan.getCache();
-	vector<Pattern> frontier_set;
-	auto bef_pattern = cache.rbegin()->first;
-	frontier_set.push_back(bef_pattern);
-	auto bitr = cache.rbegin();
-	bitr++;
-	for (; bitr != cache.rend(); bitr++) {
-		auto pattern = bitr->first;
-		if (isFrontier(pattern, bef_pattern)) {
-			frontier_set.push_back(pattern);
-		}
-		bef_pattern = pattern;
-	}
-	
-	std::shuffle(frontier_set.begin(), frontier_set.end(), Dice::mt);
-	//std::reverse(frontier_set.begin(), frontier_set.end());
-	for (auto ptr : frontier_set) {
-		db.gspan.run(ptr);
-	}
 }
 
 void CLASS::update(Pattern pattern, vector<ID> posi) {

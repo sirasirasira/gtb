@@ -29,8 +29,5 @@ class Spliter {
 		Pattern best_pattern;
 
 		void initMinScore();
-		void searchCashe();
-		inline bool isFrontier(const Pattern& pattern, const Pattern& bef_pattern);
-		void searchEnum();
 };
 

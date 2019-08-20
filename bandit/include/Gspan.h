@@ -8,24 +8,31 @@
 class Gspan {
 
 	struct CacheRecord {
-		vector<ID> posi;
+		GraphToTracers g2tracers;
 		vector<DFSCode> childs;
+		bool terminal;
 		double bound;
 		int count;
 		int sum_value;
 		double ucb;
 		double feature_importance;
 		CacheRecord() {
+			terminal = true;
 			bound = 0;
 			count = 0;
 			sum_value = 0;
 			ucb = 0;
 			feature_importance = 0;
 		}
-		CacheRecord(vector<ID> posi, vector<DFSCode> childs, double bound, int count, int sum_value, double ucb)
-			: posi(posi), childs(childs) , bound(bound), count(count), sum_value(sum_value), ucb(ucb){
-			feature_importance = 0;
-		}
+		CacheRecord(GraphToTracers g2tracers, vector<DFSCode> childs)
+			: g2tracers(g2tracers), childs(childs){
+				terminal = true;
+				bound = 0;
+				count = 0;
+				sum_value = 0;
+				ucb = 0;
+				feature_importance = 0;
+			}
 	};
 
 	public:
@@ -72,11 +79,12 @@ class Gspan {
 		}
 
 		inline void clearUCB() {
-			for (auto [key, value] : cache) {
-				value.bound = 0
-				value.count = 0;
-				value.sum_value = 0;
-				value.ucb = 0;
+			for (auto& x : cache) {
+				x.second.terminal = true;
+				x.second.bound = 0;
+				x.second.count = 0;
+				x.second.sum_value = 0;
+				x.second.ucb = 0;
 			}
 		}
 
