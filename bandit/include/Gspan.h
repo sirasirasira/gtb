@@ -5,18 +5,25 @@
 #include "Spliter.h"
 #include "IsMin.h"
 
-class Gspan {
-
-	struct CacheRecord {
-		GraphToTracers g2tracers;
-		vector<DFSCode> childs;
-		bool terminal;
-		double bound;
-		int count;
-		int sum_value;
-		double ucb;
-		double feature_importance;
-		CacheRecord() {
+struct CacheRecord {
+	GraphToTracers g2tracers;
+	vector<Pattern> childs;
+	bool terminal;
+	double bound;
+	int count;
+	int sum_value;
+	double ucb;
+	double feature_importance;
+	CacheRecord() {
+		terminal = true;
+		bound = 0;
+		count = 0;
+		sum_value = 0;
+		ucb = 0;
+		feature_importance = 0;
+	}
+	CacheRecord(vector<Pattern> childs)
+		: childs(childs){
 			terminal = true;
 			bound = 0;
 			count = 0;
@@ -24,16 +31,18 @@ class Gspan {
 			ucb = 0;
 			feature_importance = 0;
 		}
-		CacheRecord(GraphToTracers g2tracers, vector<DFSCode> childs)
-			: g2tracers(g2tracers), childs(childs){
-				terminal = true;
-				bound = 0;
-				count = 0;
-				sum_value = 0;
-				ucb = 0;
-				feature_importance = 0;
-			}
-	};
+	CacheRecord(GraphToTracers g2tracers, vector<Pattern> childs)
+		: g2tracers(g2tracers), childs(childs){
+			terminal = true;
+			bound = 0;
+			count = 0;
+			sum_value = 0;
+			ucb = 0;
+			feature_importance = 0;
+		}
+};
+
+class Gspan {
 
 	public:
 		size_t minsup;
@@ -42,14 +51,14 @@ class Gspan {
 		void run();
 		void run(Pattern pattern);
 
-		void searche1Patterns();
+		void makeRoot();
 
 		inline const map<Pattern, CacheRecord>& getCache() {
 			return cache;
 		}
 
-		inline const vector<Pattern>& gete1Patterns() {
-			return e1patterns;
+		inline const Pattern& getroot() {
+			return root;
 		}
 
 		inline void updataFeatureImportance(const Pattern& pattern, double importance) {
@@ -88,12 +97,14 @@ class Gspan {
 			}
 		}
 
+		pair<Pattern, EdgeTracer> oneEdgeSimulation(const pair<Pattern, EdgeTracer>&);
+
 	private:
 		Spliter* spliter;
 		Pattern pattern;
+		Pattern root;
 		IsMin is_min;
 		map<Pattern, CacheRecord> cache; // inserted data must keep pointer
-		vector<Pattern> e1patterns;
 
 		void edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg = false);
 		size_t support(GraphToTracers& g2tracers);

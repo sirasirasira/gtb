@@ -17,7 +17,7 @@ void CLASS::prepare(const vector<ID>& _targets) {
 	targets = _targets;
 	// Debug::IDs(targets); // debug
 	db.gspan.setSpliterPtr(this);
-	db.gspan.searche1Patterns();
+	db.gspan.makeRoot();
 	//std::cout << "prepare cache size: " << db.gspan.getCache().size() << std::endl;
 }
 

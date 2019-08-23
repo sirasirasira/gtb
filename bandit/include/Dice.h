@@ -18,4 +18,9 @@ struct Dice {
 		}
 	}
 
+	static int id(int end) {
+		static std::uniform_int_distribution<> dice_i(0, end);
+		return dice_i(mt);
+	}
+
 };

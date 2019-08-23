@@ -10,13 +10,14 @@ class UCT {
 
 	private:
 		vector<ID> targets;
-		map<Pattern, CacheRecord>* cache;
-		vector<Pattern>* e1patterns;
+		map<Pattern, CacheRecord> cache;
 		Pattern pattern;
+		Pattern root;
 		vector<Pattern> path;
 
-		void selection();
+		Pattern selection();
 		void expansion();
-		void simulation();
+		Pattern simulation(const Pattern&);
 		void backpropagation();
+		bool stop_condition(const Pattern&);
 };

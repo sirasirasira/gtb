@@ -4,6 +4,7 @@
 #include "Database.h"
 extern Database db;
 
+/*
 void CLASS::run() {
 	auto& gdata = db.gdata;
 	map<Triplet, GraphToTracers> heap;
@@ -32,8 +33,17 @@ void CLASS::run(Pattern _pattern) {
 	pattern = _pattern;
 	edgeGrow(cache[_pattern].g2tracers, true);
 }
+*/
 
-void CLASS::searche1Patterns() {
+void CLASS::makeRoot() {
+	DFSCode dcode;
+	dcode.labels = Triplet(0, 0, 0);
+	dcode.time.set(0, 0);
+	Pattern _root{dcode};
+	root = _root;
+	vector<Pattern> childs; // empty vec
+	cache.insert({root, CacheRecord(childs)});
+
 	auto& gdata = db.gdata;
 	map<Triplet, GraphToTracers> heap;
 	for (ID gid = 0; gid < (ID) gdata.size(); gid++) {
@@ -56,8 +66,82 @@ void CLASS::searche1Patterns() {
 		}
 		pattern[0].labels = itr->first;
 		pattern[0].time.set(0, 1);
-		e1patterns.push_back(pattern);
+		cache[root].childs.push_back(pattern);
+		cache.insert({pattern, CacheRecord(itr->second, childs)});
 	}
+}
+
+// not minDFS
+pair<Pattern, EdgeTracer> CLASS::oneEdgeSimulation(const pair<Pattern, EdgeTracer>& pat_et){
+	// if there is no representation of expansion, pattern is not change and tracer size is 0
+	// std::cout << "debug oneEdgeSimulation" << std::endl; // debug
+	/*
+int CLASS::randEdgeExpansion(Edgetracer& etracer) const {
+	int maxtoc = 0;
+	for (auto it = pattern.rbegin(); it != pattern.rend(); it++) {
+		if (it->time.a < it->time.b) {
+			maxtoc = it->time.b;
+			break;
+		}
+	}
+	vector<VertexPair> vpairs(pattern.size());
+	EdgeTracer *tracer;
+
+	Pair pkey;
+	EdgeTracer cursor;
+
+	for (auto x = g2tracers.begin(); x != g2tracers.end(); ++x) {
+		int gid = x->first;
+		for (auto it = x->second.begin(); it != x->second.end(); ++it) {
+			// an instance (a sequence of vertex pairs) as vector "vpair"
+			tracer = &(*it);
+
+			Graph& g = db.gdata[gid];
+			vector<bool> tested(g.num_of_edges);
+			vector<bool> discovered(g.size());
+			vector<int> vid2time(g.size(), -1);
+
+			for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
+				vpairs[i] = tracer->vpair;
+				auto vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+				tested[vidbase + 0] = true;
+				tested[vidbase + 1] = true;
+				discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+
+				vid2time[vpairs[i].b] = pattern[i].time.b;
+				if (i == 0) {
+					vid2time[vpairs[i].a] = pattern[i].time.a;
+				}
+			}
+
+			// make heap
+			for (unsigned int i = 0; i < g.size(); i++) {
+				if (!discovered[i]) {
+					continue;
+				}
+				for (unsigned int j = 0; j < g[i].size(); j++) {
+					Edge& added_edge = g[i][j];
+					if (discovered[added_edge.to]) {
+						// backward
+						if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
+							pkey.set(added_edge.labels.y,vid2time[added_edge.to]);
+							cursor.set(i,added_edge.to,added_edge.id,&(*it));
+							b_heap[vid2time[i]][pkey][gid].push_back(cursor);
+						}
+					} else {
+						// forward
+						pkey.set(added_edge.labels.y,added_edge.labels.z);
+						cursor.set(i,added_edge.to,added_edge.id,&(*it));
+						f_heap[vid2time[i]][pkey][gid].push_back(cursor);
+					}
+				}
+			}
+		}
+	}
+	return maxtoc;
+}
+	*/
+	return pat_et;
 }
 
 size_t CLASS::support(GraphToTracers& g2tracers) {
@@ -71,80 +155,6 @@ size_t CLASS::support(GraphToTracers& g2tracers) {
 	}
 	return support;
 }
-
-void CLASS::edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg) {
-	// std::cout << "debug edgeGrow" << std::endl; // debug
-	if (pattern.size() > maxpat) {
-		// std::cout << "debug cut size" << std::endl; // debug
-		return;
-	}
-	if (support(g2tracers) < minsup) {
-		// std::cout << "debug cut minsup" << std::endl; // debug
-		return;
-	}
-	if (in_cache_flg) {
-		goto G_skip;
-	}
-	if (is_min.run(pattern) == false) {
-		// std::cout << "debug cut is_min" << std::endl; // debug
-		return;
-	}
-
-	//report(g2tracers);
-	cache.insert({pattern, CacheRecord(g2tracers)});
-G_skip:
-
-	vector<ID> posi = getPosiIds(g2tracers);
-	spliter->update(pattern, posi); 
-	if (spliter->isBounded(posi)) {
-		// std::cout << "debug cut bounded" << std::endl; // debug
-		return;
-	}
-	// std::cout << "debug new ptn" << std::endl; // debug
-
-
-	PairSorter b_heap;
-	map<int, PairSorter, std::greater<int>> f_heap;
-	int maxtoc = scanGspan(cache[pattern].g2tracers, b_heap, f_heap);
-	// std::cout << "debug maxtoc " << maxtoc << std::endl; // debug
-
-	// projecting
-	DFSCode dcode;
-	for (auto itr = b_heap.begin(); itr != b_heap.end(); itr++) {
-		 // std::cout << "debug edgeGrow b_heap" << std::endl; // debug
-		dcode.labels = Triplet(-1, itr->first.b, -1);
-		dcode.time.set(maxtoc, itr->first.a);
-		pattern.push_back(dcode);
-		edgeGrow(itr->second);
-		pattern.pop_back();
-	}
-
-	for (auto itr = f_heap.begin(); itr != f_heap.end(); itr++) {
-		 // std::cout << "debug edgeGrow f_heap" << std::endl; // debug
-		for (auto itr2 = itr->second.begin(); itr2 != itr->second.end(); itr2++) {
-			dcode.labels = Triplet(-1, itr2->first.a, itr2->first.b);
-			dcode.time.set(itr->first, maxtoc + 1);
-			pattern.push_back(dcode);
-			edgeGrow(itr2->second);
-			pattern.pop_back();
-		}
-	}
-}
-
-//void CLASS::report(GraphToTracers& tracers) {
-//	// std::cout << "debug report" << std::endl; // debug
-//	extern Setting setting;
-//	if (setting.out_instances) {
-//		cout << tracers.size() << "||" << pattern << "||";
-//		for (auto x : tracers) {
-//			cout << x.first << " ";
-//		}
-//		cout << endl;
-//	} else {
-//		// cout << tracers.size() << " " << ":" << pattern << endl;
-//		cout << " " << ":" << pattern << endl;
-//	}
-//}
 
 int CLASS::scanGspan(GraphToTracers& g2tracers, PairSorter& b_heap, map<int, PairSorter, std::greater<int>>& f_heap) const {
 	// build right most path
@@ -216,3 +226,79 @@ int CLASS::scanGspan(GraphToTracers& g2tracers, PairSorter& b_heap, map<int, Pai
 	return maxtoc;
 }
 
+
+/*
+void CLASS::edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg) {
+	// std::cout << "debug edgeGrow" << std::endl; // debug
+	if (pattern.size() > maxpat) {
+		// std::cout << "debug cut size" << std::endl; // debug
+		return;
+	}
+	if (support(g2tracers) < minsup) {
+		// std::cout << "debug cut minsup" << std::endl; // debug
+		return;
+	}
+	if (in_cache_flg) {
+		goto G_skip;
+	}
+	if (is_min.run(pattern) == false) {
+		// std::cout << "debug cut is_min" << std::endl; // debug
+		return;
+	}
+
+	//report(g2tracers);
+	cache.insert({pattern, CacheRecord(g2tracers)});
+G_skip:
+
+	vector<ID> posi = getPosiIds(g2tracers);
+	spliter->update(pattern, posi); 
+	if (spliter->isBounded(posi)) {
+		// std::cout << "debug cut bounded" << std::endl; // debug
+		return;
+	}
+	// std::cout << "debug new ptn" << std::endl; // debug
+
+
+	PairSorter b_heap;
+	map<int, PairSorter, std::greater<int>> f_heap;
+	int maxtoc = scanGspan(cache[pattern].g2tracers, b_heap, f_heap);
+	// std::cout << "debug maxtoc " << maxtoc << std::endl; // debug
+
+	// projecting
+	DFSCode dcode;
+	for (auto itr = b_heap.begin(); itr != b_heap.end(); itr++) {
+		 // std::cout << "debug edgeGrow b_heap" << std::endl; // debug
+		dcode.labels = Triplet(-1, itr->first.b, -1);
+		dcode.time.set(maxtoc, itr->first.a);
+		pattern.push_back(dcode);
+		edgeGrow(itr->second);
+		pattern.pop_back();
+	}
+
+	for (auto itr = f_heap.begin(); itr != f_heap.end(); itr++) {
+		 // std::cout << "debug edgeGrow f_heap" << std::endl; // debug
+		for (auto itr2 = itr->second.begin(); itr2 != itr->second.end(); itr2++) {
+			dcode.labels = Triplet(-1, itr2->first.a, itr2->first.b);
+			dcode.time.set(itr->first, maxtoc + 1);
+			pattern.push_back(dcode);
+			edgeGrow(itr2->second);
+			pattern.pop_back();
+		}
+	}
+}
+
+void CLASS::report(GraphToTracers& tracers) {
+	// std::cout << "debug report" << std::endl; // debug
+	extern Setting setting;
+	if (setting.out_instances) {
+		cout << tracers.size() << "||" << pattern << "||";
+		for (auto x : tracers) {
+			cout << x.first << " ";
+		}
+		cout << endl;
+	} else {
+		// cout << tracers.size() << " " << ":" << pattern << endl;
+		cout << " " << ":" << pattern << endl;
+	}
+}
+*/
