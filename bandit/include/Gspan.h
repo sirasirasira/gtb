@@ -11,14 +11,14 @@ struct CacheRecord {
 	bool terminal;
 	double bound;
 	int count;
-	int sum_value;
+	int sum_score;
 	double ucb;
 	double feature_importance;
 	CacheRecord() {
 		terminal = true;
 		bound = 0;
 		count = 0;
-		sum_value = 0;
+		sum_score = 0;
 		ucb = 0;
 		feature_importance = 0;
 	}
@@ -27,7 +27,7 @@ struct CacheRecord {
 			terminal = true;
 			bound = 0;
 			count = 0;
-			sum_value = 0;
+			sum_score = 0;
 			ucb = 0;
 			feature_importance = 0;
 		}
@@ -36,7 +36,7 @@ struct CacheRecord {
 			terminal = true;
 			bound = 0;
 			count = 0;
-			sum_value = 0;
+			sum_score = 0;
 			ucb = 0;
 			feature_importance = 0;
 		}
@@ -92,12 +92,12 @@ class Gspan {
 				x.second.terminal = true;
 				x.second.bound = 0;
 				x.second.count = 0;
-				x.second.sum_value = 0;
+				x.second.sum_score = 0;
 				x.second.ucb = 0;
 			}
 		}
 
-		pair<Pattern, EdgeTracer> oneEdgeSimulation(const pair<Pattern, EdgeTracer>&);
+		tuple<Pattern, EdgeTracer, ID> oneEdgeSimulation(tuple<Pattern, EdgeTracer, ID>&);
 
 	private:
 		Spliter* spliter;

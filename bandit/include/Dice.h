@@ -18,9 +18,15 @@ struct Dice {
 		}
 	}
 
-	static int id(int end) {
-		static std::uniform_int_distribution<> dice_i(0, end);
+	static ID id(int size) {
+		static std::uniform_int_distribution<> dice_i(0, size);
 		return dice_i(mt);
 	}
 
+	static vector<ID> shuffle(int size) {
+		vector<ID> v(size);
+		std::iota(v.begin(), v.end(), 0);
+		std::shuffle(v.begin(), v.end(), mt);
+		return v;
+	}
 };

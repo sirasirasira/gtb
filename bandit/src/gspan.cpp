@@ -72,76 +72,74 @@ void CLASS::makeRoot() {
 }
 
 // not minDFS
-pair<Pattern, EdgeTracer> CLASS::oneEdgeSimulation(const pair<Pattern, EdgeTracer>& pat_et){
-	// if there is no representation of expansion, pattern is not change and tracer size is 0
+tuple<Pattern, EdgeTracer, ID> CLASS::oneEdgeSimulation(tuple<Pattern, EdgeTracer, ID>& pat_et_gid){
+	// if there is no representation of expansion, pattern is not change and edgetracer.predec is nullptr
 	// std::cout << "debug oneEdgeSimulation" << std::endl; // debug
-	/*
-int CLASS::randEdgeExpansion(Edgetracer& etracer) const {
-	int maxtoc = 0;
-	for (auto it = pattern.rbegin(); it != pattern.rend(); it++) {
-		if (it->time.a < it->time.b) {
-			maxtoc = it->time.b;
+	Pattern pattern = std::get<0>(pat_et_gid);
+	EdgeTracer* tracer = &(std::get<1>(pat_et_gid));
+	ID gid = std::get<2>(pat_et_gid);
+
+	vector<VertexPair> vpairs(pattern.size());
+	EdgeTracer cursor;
+
+	Graph& g = db.gdata[gid];
+	size_t maxtoc = 0;
+	vector<bool> tested(g.num_of_edges); // edge
+	vector<bool> discovered(g.size()); // node
+	vector<int> vid2time(g.size(), -1);
+
+	for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
+		vpairs[i] = tracer->vpair;
+		ID vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+		tested[vidbase + 0] = true;
+		tested[vidbase + 1] = true;
+		discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+
+		vid2time[vpairs[i].b] = pattern[i].time.b;
+		if (i == 0) {
+			vid2time[vpairs[i].a] = pattern[i].time.a;
+		}
+		if (maxtoc < pattern[i].time.b) {
+			maxtoc = pattern[i].time.b;
+		}
+	}
+
+	bool valid_flg = false;
+	DFSCode dcode;
+	for (auto& i : Dice::shuffle(g.size())) {
+		if (!discovered[i]) {
+			continue;
+		}
+		for (auto& j : Dice::shuffle(g[i].size())) {
+			Edge& added_edge = g[i][j];
+			if (discovered[added_edge.to]) {
+				// backward
+				if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
+					dcode.labels = Triplet(-1, added_edge.labels.y, -1);
+					dcode.time.set(vid2time[i], vid2time[added_edge.to]);
+					pattern.push_back(dcode);
+					cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
+					valid_flg = true;
+					break;
+				}
+			} else {
+				// forward
+				dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
+				dcode.time.set(vid2time[i], maxtoc);
+				pattern.push_back(dcode);
+				cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
+				valid_flg = true;
+				break;
+			}
+		}
+		if (valid_flg) {
 			break;
 		}
 	}
-	vector<VertexPair> vpairs(pattern.size());
-	EdgeTracer *tracer;
-
-	Pair pkey;
-	EdgeTracer cursor;
-
-	for (auto x = g2tracers.begin(); x != g2tracers.end(); ++x) {
-		int gid = x->first;
-		for (auto it = x->second.begin(); it != x->second.end(); ++it) {
-			// an instance (a sequence of vertex pairs) as vector "vpair"
-			tracer = &(*it);
-
-			Graph& g = db.gdata[gid];
-			vector<bool> tested(g.num_of_edges);
-			vector<bool> discovered(g.size());
-			vector<int> vid2time(g.size(), -1);
-
-			for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
-				vpairs[i] = tracer->vpair;
-				auto vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
-				tested[vidbase + 0] = true;
-				tested[vidbase + 1] = true;
-				discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
-
-				vid2time[vpairs[i].b] = pattern[i].time.b;
-				if (i == 0) {
-					vid2time[vpairs[i].a] = pattern[i].time.a;
-				}
-			}
-
-			// make heap
-			for (unsigned int i = 0; i < g.size(); i++) {
-				if (!discovered[i]) {
-					continue;
-				}
-				for (unsigned int j = 0; j < g[i].size(); j++) {
-					Edge& added_edge = g[i][j];
-					if (discovered[added_edge.to]) {
-						// backward
-						if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
-							pkey.set(added_edge.labels.y,vid2time[added_edge.to]);
-							cursor.set(i,added_edge.to,added_edge.id,&(*it));
-							b_heap[vid2time[i]][pkey][gid].push_back(cursor);
-						}
-					} else {
-						// forward
-						pkey.set(added_edge.labels.y,added_edge.labels.z);
-						cursor.set(i,added_edge.to,added_edge.id,&(*it));
-						f_heap[vid2time[i]][pkey][gid].push_back(cursor);
-					}
-				}
-			}
-		}
+	if (!valid_flg) {
+		tracer->predec = nullptr;
 	}
-	return maxtoc;
-}
-	*/
-	return pat_et;
+	return make_tuple(pattern, cursor, gid);
 }
 
 size_t CLASS::support(GraphToTracers& g2tracers) {

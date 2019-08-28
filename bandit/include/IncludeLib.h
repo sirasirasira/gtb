@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <tuple>
 
 #include <algorithm>
 #include <cfloat>
@@ -20,3 +21,4 @@ using std::map;
 using std::multimap;
 using std::string;
 using std::pair;
+using std::tuple;
