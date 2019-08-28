@@ -43,6 +43,7 @@ void CLASS::makeRoot() {
 	root = _root;
 	vector<Pattern> childs; // empty vec
 	cache.insert({root, CacheRecord(childs)});
+	cache[root].terminal = false;
 
 	auto& gdata = db.gdata;
 	map<Triplet, GraphToTracers> heap;
@@ -154,7 +155,8 @@ size_t CLASS::support(GraphToTracers& g2tracers) {
 	return support;
 }
 
-int CLASS::scanGspan(GraphToTracers& g2tracers, PairSorter& b_heap, map<int, PairSorter, std::greater<int>>& f_heap) const {
+bool CLASS::scanGspan(const Pattern& pattern) {
+	/*
 	// build right most path
 	vector<size_t> rm_path_index;
 	scan_rm(pattern, rm_path_index);
@@ -221,7 +223,8 @@ int CLASS::scanGspan(GraphToTracers& g2tracers, PairSorter& b_heap, map<int, Pai
 			}
 		}
 	}
-	return maxtoc;
+	*/
+	return true;
 }
 
 

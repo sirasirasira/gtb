@@ -10,8 +10,8 @@ struct CacheRecord {
 	vector<Pattern> childs;
 	bool terminal;
 	double bound;
-	int count;
-	int sum_score;
+	size_t count;
+	double sum_score;
 	double ucb;
 	double feature_importance;
 	CacheRecord() {
@@ -19,7 +19,7 @@ struct CacheRecord {
 		bound = 0;
 		count = 0;
 		sum_score = 0;
-		ucb = 0;
+		ucb = DBL_MAX;
 		feature_importance = 0;
 	}
 	CacheRecord(vector<Pattern> childs)
@@ -57,7 +57,7 @@ class Gspan {
 			return cache;
 		}
 
-		inline const Pattern& getroot() {
+		inline const Pattern& getRoot() {
 			return root;
 		}
 
@@ -98,6 +98,7 @@ class Gspan {
 		}
 
 		tuple<Pattern, EdgeTracer, ID> oneEdgeSimulation(tuple<Pattern, EdgeTracer, ID>&);
+		bool scanGspan(const Pattern&);
 
 	private:
 		Spliter* spliter;
@@ -109,6 +110,5 @@ class Gspan {
 		void edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg = false);
 		size_t support(GraphToTracers& g2tracers);
 		void report(GraphToTracers& tracers);
-		int scanGspan(GraphToTracers& g2tracers, PairSorter& b_heap, map<int, PairSorter, std::greater<int>>& f_heap) const ;
 
 };

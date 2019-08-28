@@ -14,9 +14,9 @@ class UCT {
 		Pattern root;
 		vector<Pattern> path;
 
-		Pattern selection();
-		void expansion();
+		void selection(const Pattern&);
+		void expansion(const Pattern&);
 		Pattern simulation(const Pattern&);
-		void backpropagation(const Pattern&);
+		void backpropagation(double);
 		bool stop_condition(const tuple<Pattern, EdgeTracer, ID>&);
 };

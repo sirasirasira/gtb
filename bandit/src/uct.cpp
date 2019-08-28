@@ -10,38 +10,67 @@ void CLASS::run(const vector<ID>& _targets) {
 	targets = _targets;
 	db.gspan.clearUCB();
 	cache = db.gspan.getCache();
-	root = db.gspan.getroot();
+	root = db.gspan.getRoot();
 	Pattern pattern;
+	vector<ID> posi;
+	double score;
 
 	for (const auto& c : cache[root].childs) { // minimum itaration = one edge graphs size
-		path = {c};
-		pattern = simulation(c);
-		backpropagation(pattern);
+		for (unsigned int i = 0; i < setting.threshold; i++) {
+			path = {root, c};
+			pattern = simulation(c);
+			posi = db.finder.run(pattern, targets);
+			score = Calculator::score(db.ys, targets, posi);
+			backpropagation(score);
+		}
 	}
 
-	for (unsigned int i = 0; i < setting.iteration - cache[root].childs.size(); i++) {
+	for (unsigned int i = 0; i < setting.iteration - (cache[root].childs.size() * setting.threshold); i++) {
 		path = {};
-		/*
-		pattern = selection();
-		expansion();
-		simulation();
-		backpropagation();
-		*/
+		selection(root);
+		pattern = path[path.size()-1];
+		if (cache[pattern].terminal) {
+			pattern = simulation(pattern);
+			posi = db.finder.run(pattern, targets);
+			score = Calculator::score(db.ys, targets, posi);
+			backpropagation(score);
+		} else {
+			posi = db.gspan.getPosiIds(cache[pattern].g2tracers);
+			score = Calculator::score(db.ys, targets, posi);
+			backpropagation(score);
+		}
 	}
 }
 
-Pattern CLASS::selection() {
-	return root;
+void CLASS::selection(const Pattern& pattern) {
+	path.push_back(pattern);
+	if (cache[pattern].terminal) {
+		if (cache[pattern].count >= setting.threshold) {
+			expansion(pattern);
+		}
+	} else {
+		if (cache[pattern].childs.size() != 0) {
+			Pattern best_child;
+			double max_ucb = 0;
+			for (auto& c : cache[pattern].childs) {
+				if (cache[c].ucb > max_ucb) {
+					best_child = c;
+					max_ucb = cache[c].ucb;
+				}
+			}
+			selection(best_child);
+		}
+	}
 }
 
-void CLASS::expansion() {
-}
-
-void CLASS::update(){
+void CLASS::expansion(const Pattern & pattern) {
+	cache[pattern].terminal = false;
+	if (db.gspan.scanGspan(pattern)) {
+		path.push_back(cache[pattern].childs[0]);
+	}
 }
 
 Pattern CLASS::simulation(const Pattern& pattern) {
-	// random select edgetracer
 	auto& g2tracers = cache[pattern].g2tracers;
 	ID gid = Dice::id(g2tracers.size());
 	auto& tracers = g2tracers[gid];
@@ -68,24 +97,13 @@ bool CLASS::stop_condition(const tuple<Pattern, EdgeTracer, ID>& pat_et_gid) {
 	return false;
 }
 
-void CLASS::backpropagation(const Pattern& pattern) {
-	vector<ID> posi = db.finder.run(pattern, targets);
-	double score = Calculator::score(db.ys, targets, posi);
-	// update
-	for (int i = path.size(); i >= 0; i--) {
+void CLASS::backpropagation(double score) {
+	for (int i = path.size() - 1; i > 0; i--) {
 		cache[path[i]].count++;
 		cache[path[i]].sum_score += score;
-		if (cache[path[i]].childs.size() * setting.c_threshold <= cache[path[i]].count) {
-			cache[path[i]].terminal = false;
-		}
 		double count = cache[path[i]].count;
 		double ave = cache[path[i]].sum_score / count;
-		double p_count;
-		if (i == 0) {
-			p_count = cache[root].count + 1;
-		} else {
-			p_count = cache[path[i-1]].count + 1;
-		}
+		double p_count = cache[path[i-1]].count + 1;
 		cache[path[i]].ucb = ave + setting.c * sqrt(2 * log(p_count) / count);
 	}
 	cache[root].count++;

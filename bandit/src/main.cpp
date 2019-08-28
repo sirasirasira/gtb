@@ -79,10 +79,13 @@ int main(int argc, char** argv) {
 		+ " [-s (double) shrinkage]"
 		+ " [-n (double) needed_impurity_decrease]"
 		+ " [-d max_depth]"
+		+ " [-i iteration]"
+		+ " [-h threshold]"
+		+ " [-c ucb_parameter]"
 		+ " traing_data_file"
 		+ " test_data_file"
 		+ "";
-	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:i:re")) != -1) {
+	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:i:h:c:re")) != -1) {
 		switch (opt) {
 			case 'm':
 				//setting.minsup = atoi(optarg);
@@ -105,6 +108,12 @@ int main(int argc, char** argv) {
 				break;
 			case 'i':
 				setting.iteration = atoi(optarg);
+				break;
+			case 'h':
+				setting.threshold = atoi(optarg);
+				break;
+			case 'c':
+				setting.c = atof(optarg);
 				break;
 			default:
 				std::cerr << usage << std::endl;
