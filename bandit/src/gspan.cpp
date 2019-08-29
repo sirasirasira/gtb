@@ -9,8 +9,7 @@ void CLASS::makeRoot() {
 	DFSCode dcode;
 	dcode.labels = Triplet(-1, -1, -1);
 	dcode.time.set(0, 0);
-	Pattern _root{dcode};
-	root = _root;
+	root = {dcode};
 	vector<Pattern> childs; // empty vec
 	cache.insert({root, CacheRecord(childs)});
 	cache[root].scan = true;
@@ -30,7 +29,6 @@ void CLASS::makeRoot() {
 		}
 	}
 	pattern.resize(1);
-
 	for (auto itr = heap.begin(); itr != heap.end(); itr++) {
 		if (support(itr->second) < minsup) {
 			continue;
@@ -98,7 +96,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 						pattern.push_back(dcode);
 						cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
 						valid_flg = true;
-						// update discovered & tested & maxtoc
+						// update tested
 						ID vidbase = added_edge.id - (added_edge.id % 2);
 						tested[vidbase + 0] = true;
 						tested[vidbase + 1] = true;
@@ -111,11 +109,12 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 					pattern.push_back(dcode);
 					cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
 					valid_flg = true;
-					// update discovered & tested & maxtoc
+					// update discovered & tested & vid2time & maxtoc
 					discovered[added_edge.to] = true;
 					ID vidbase = added_edge.id - (added_edge.id % 2);
 					tested[vidbase + 0] = true;
 					tested[vidbase + 1] = true;
+					vid2time[added_edge.to] = maxtoc+1;
 					maxtoc++;
 					break;
 				}
@@ -131,17 +130,17 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 	// std::cout << "stop_condition" << std::endl; // debug
 	 std::cout << pattern << std::endl;
-	if (pattern.size() > maxpat) {
-		// std::cout << "maxpat" << std::endl;
+	if (pattern.size() >= maxpat) {
+		 std::cout << "maxpat" << std::endl;
 		return true;
 	}
 	if (!valid_flg) {
-		// std::cout << "no childs" << std::endl;
+		 std::cout << "no childs" << std::endl;
 		return true;
 	}
 	//TODO
 	if (Dice::p(0.1)) {
-		// std::cout << "probability" << std::endl;
+		 std::cout << "probability" << std::endl;
 		return true;
 	}
 	return false;

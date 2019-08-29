@@ -39,7 +39,9 @@ void CLASS::run(const vector<ID>& _targets) {
 		pattern = path[path.size()-1];
 		if (cache[pattern].terminal) {
 			pattern = simulation(pattern);
+			std::cout << "finder start" << std::endl; // debug
 			posi = db.finder.run(pattern, targets);
+			std::cout << "finder end" << std::endl; // debug
 			score = Calculator::score(db.ys, targets, posi);
 			backpropagation(score);
 		} else {
@@ -123,6 +125,7 @@ Pattern CLASS::simulation(const Pattern& pattern) {
 	ID gid = Dice::id(g2tracers.size());
 	auto& tracers = g2tracers[gid];
 	auto& tracer = tracers[Dice::id(tracers.size())];
+	 std::cout << "gid:" << gid << std::endl; // debug
 	 std::cout << &tracer << std::endl;
 	 std::cout <<  "a:" << tracer.vpair.a << std::endl;
 	 std::cout <<  "b:" << tracer.vpair.b << std::endl;

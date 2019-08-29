@@ -7,6 +7,12 @@ extern Database db;
 vector<ID> CLASS::run(const Pattern& best_pattern, const vector<ID>& targets) {
 	//cout << "finder run" << endl;
 	pattern = best_pattern;
+	cout << "finder run" << endl;
+	cout << pattern << endl;
+	for (auto dfs: pattern) {
+		cout << "(" << dfs.time.a << ":" << dfs.time.b << ":" << dfs.labels.x << ":" << dfs.labels.y << ":" << dfs.labels.y << ")" << " ";
+	}
+	cout << endl;
 
 	vector<ID> posi;
 	for (auto gid : targets) {
