@@ -16,6 +16,7 @@ class UCT {
 
 		void selection(const Pattern&);
 		void expansion(const Pattern&);
+		bool update();
 		Pattern simulation(const Pattern&);
 		void backpropagation(double);
 		bool stop_condition(const tuple<Pattern, EdgeTracer, ID>&);

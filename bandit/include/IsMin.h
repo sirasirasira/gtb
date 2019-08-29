@@ -5,8 +5,8 @@
 
 class IsMin {
 	public:
-		bool run(const Pattern& pattern);
+		Pattern convert(Pattern& pattern);
 	private:
 		const Pattern* pattern_ptr;
-		bool minChecker(Pattern& comp, Graph& g, Tracers& tracers);
+		Pattern minChecker(Pattern& comp, Graph& g, Tracers& tracers);
 };

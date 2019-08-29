@@ -3,9 +3,9 @@
 
 #include "Calculator.h" 
 
-bool CLASS::run(const Pattern& pattern) {
-	 // std::cout << "debug isMin" << std::endl; // debug
-	if (pattern.size() == 1) return true;
+Pattern CLASS::convert(Pattern& pattern) {
+	// std::cout << "debug isMin" << std::endl; // debug
+	if (pattern.size() == 1) return pattern;
 	Graph g = toGraph(pattern);
 	map<Triplet, Tracers> heap;
 	EdgeTracer cursor;
@@ -26,14 +26,14 @@ bool CLASS::run(const Pattern& pattern) {
 	return minChecker(comp, g, itr->second);
 }
 
-bool CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
+Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 	 // std::cout << "debug minChecker" << std::endl; // debug
 
 	// build right most path
 	vector<size_t> rm_path_index;
 	scan_rm(comp, rm_path_index);
 
-	const Pattern& pattern = *pattern_ptr;
+	//const Pattern& pattern = *pattern_ptr;
 	int minlabel = comp[0].labels.x;
 	int maxtoc = comp[rm_path_index[0]].time.b;
 
@@ -87,7 +87,7 @@ bool CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		auto b_itr = b_heap.begin();
 		dcode.labels = Triplet(-1, b_itr->first.b, -1);
 		dcode.time.set(maxtoc, b_itr->first.a);
-		if (dcode != pattern[comp.size()]) return false;
+		//if (dcode != pattern[comp.size()]) return false;
 		comp.push_back(dcode);
 		return minChecker(comp, g, b_itr->second);
 	}
@@ -95,7 +95,7 @@ bool CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		auto f_itr = f_heap.begin();
 		dcode.labels = Triplet(-1, f_itr->first.a, f_itr->first.b);
 		dcode.time.set(maxtoc, maxtoc + 1);
-		if (dcode!= pattern[comp.size()]) return false;
+		//if (dcode!= pattern[comp.size()]) return false;
 		comp.push_back(dcode);
 		return minChecker(comp, g, f_itr->second);
 	}
@@ -132,10 +132,11 @@ bool CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		auto ff_itr = ff_heap.begin();
 		dcode.labels = Triplet(-1, ff_itr->first.a, ff_itr->first.b);
 		dcode.time.set(from, maxtoc + 1);
-		if (dcode != pattern[comp.size()]) return false;
+		//if (dcode != pattern[comp.size()]) return false;
 		comp.push_back(dcode);
 		return minChecker(comp, g, ff_itr->second);
 	}
-	return true;
+	//return true;
+	return comp;
 }
 

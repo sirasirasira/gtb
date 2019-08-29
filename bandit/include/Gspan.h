@@ -14,6 +14,7 @@ struct CacheRecord {
 	double sum_score;
 	double ucb;
 	double feature_importance;
+	bool scan;
 	CacheRecord() {
 		terminal = true;
 		bound = 0;
@@ -21,6 +22,7 @@ struct CacheRecord {
 		sum_score = 0;
 		ucb = DBL_MAX;
 		feature_importance = 0;
+		scan = false;
 	}
 	CacheRecord(vector<Pattern> childs)
 		: childs(childs){
@@ -28,8 +30,9 @@ struct CacheRecord {
 			bound = 0;
 			count = 0;
 			sum_score = 0;
-			ucb = 0;
+			ucb = DBL_MAX;
 			feature_importance = 0;
+			scan = false;
 		}
 	CacheRecord(GraphToTracers g2tracers, vector<Pattern> childs)
 		: g2tracers(g2tracers), childs(childs){
@@ -37,8 +40,9 @@ struct CacheRecord {
 			bound = 0;
 			count = 0;
 			sum_score = 0;
-			ucb = 0;
+			ucb = DBL_MAX;
 			feature_importance = 0;
+			scan = false;
 		}
 };
 
@@ -48,9 +52,8 @@ class Gspan {
 		size_t minsup;
 		size_t maxpat;
 
-		void run();
-		void run(Pattern pattern);
-
+		Pattern EdgeSimulation(const Pattern&, EdgeTracer&, ID);
+		void scanGspan(const Pattern&);
 		void makeRoot();
 
 		inline const map<Pattern, CacheRecord>& getCache() {
@@ -93,22 +96,18 @@ class Gspan {
 				x.second.bound = 0;
 				x.second.count = 0;
 				x.second.sum_score = 0;
-				x.second.ucb = 0;
+				x.second.ucb = -DBL_MAX;
 			}
+			cache[root].terminal = false;
 		}
-
-		tuple<Pattern, EdgeTracer, ID> oneEdgeSimulation(tuple<Pattern, EdgeTracer, ID>&);
-		bool scanGspan(const Pattern&);
 
 	private:
 		Spliter* spliter;
-		Pattern pattern;
 		Pattern root;
 		IsMin is_min;
 		map<Pattern, CacheRecord> cache; // inserted data must keep pointer
 
-		void edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg = false);
+		bool stop_condition(const Pattern, bool);
 		size_t support(GraphToTracers& g2tracers);
-		void report(GraphToTracers& tracers);
 
 };

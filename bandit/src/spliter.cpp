@@ -42,16 +42,14 @@ vector<ID> CLASS::run(const vector<ID>& _targets) {
 	return Calculator::setIntersec(targets, posi);
 }
 
-void CLASS::update(Pattern pattern, vector<ID> posi) {
-	double score = Calculator::score(db.ys, targets, posi);
+void CLASS::update(Pattern& pattern, double score) {
 	if (score < min_score ) { // old pattern may be used (this func is called from gspan)
 		min_score = score;
 		best_pattern = pattern;
 	}
 }
 
-bool CLASS::isBounded(vector<ID> posi) {
-	double min_bound = Calculator::bound(db.ys, targets, posi);
+bool CLASS::isBounded(double min_bound) {
 	if (min_score <= min_bound) {
 		return true;
 	} else {
