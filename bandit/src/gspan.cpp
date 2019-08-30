@@ -89,6 +89,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 			for (auto& j : Dice::shuffle(g[i].size())) {
 				Edge& added_edge = g[i][j];
 				if (discovered[added_edge.to]) {
+	 std::cout << "333333333333a" << std::endl; // debug
 					// backward
 					if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
 						dcode.labels = Triplet(-1, added_edge.labels.y, -1);
@@ -100,13 +101,16 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 						ID vidbase = added_edge.id - (added_edge.id % 2);
 						tested[vidbase + 0] = true;
 						tested[vidbase + 1] = true;
+	 std::cout << "44444444444444" << std::endl; // debug
 						break;
 					}
 				} else {
 					// forward
 					dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
 					dcode.time.set(vid2time[i], maxtoc+1);
+	 std::cout << "333333333333b" << std::endl; // debug
 					pattern.push_back(dcode);
+	 std::cout << "44444444444444" << std::endl; // debug
 					cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
 					valid_flg = true;
 					// update discovered & tested & vid2time & maxtoc
@@ -131,16 +135,16 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 	// std::cout << "stop_condition" << std::endl; // debug
 	 std::cout << pattern << std::endl;
 	if (pattern.size() >= maxpat) {
-		 std::cout << "maxpat" << std::endl;
+		// std::cout << "maxpat" << std::endl;
 		return true;
 	}
 	if (!valid_flg) {
-		 std::cout << "no childs" << std::endl;
+		// std::cout << "no childs" << std::endl;
 		return true;
 	}
 	//TODO
 	if (Dice::p(0.1)) {
-		 std::cout << "probability" << std::endl;
+		// std::cout << "probability" << std::endl;
 		return true;
 	}
 	return false;

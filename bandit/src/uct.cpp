@@ -19,9 +19,11 @@ void CLASS::run(const vector<ID>& _targets) {
 		for (unsigned int i = 0; i < setting.threshold; i++) {
 			std::cout << "root child : " << c << std::endl; // debug
 			path = {root, c};
-			pattern = simulation(c);
-			std::cout << pattern << std::endl; // debug
-			posi = db.finder.run(pattern, targets);
+			const auto sim_pat = simulation(c);
+			std::cout << sim_pat << std::endl; // debug
+			std::cout << "finder b" << std::endl; // debug
+			posi = db.finder.run(sim_pat, targets);
+			std::cout << "finder e" << std::endl; // debug
 			score = Calculator::score(db.ys, targets, posi);
 			std::cout << "score : " << score << std::endl; // debug
 			backpropagation(score);
