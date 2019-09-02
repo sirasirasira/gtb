@@ -46,6 +46,11 @@ inline bool operator < (const DFSCode& l, const DFSCode& r) { // original gspan 
 	return (l.labels.z < r.labels.z);
 }
 
+inline std::ostream& operator << (std::ostream& os, const DFSCode dcode) {
+	os << "(" << dcode.time.a << " " << dcode.time.b << " " << dcode.labels.x << " "  << dcode.labels.y << " "  << dcode.labels.z << ")";
+	return os;
+}
+
 using Pattern = vector<DFSCode>;
 
 inline bool operator < (const Pattern& l, const Pattern& r) {

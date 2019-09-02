@@ -19,7 +19,10 @@ struct Dice {
 	}
 
 	static ID id(int size) {
-		static std::uniform_int_distribution<> dice_i(0, size);
+		if (size == 1) {
+			return 0;
+		}
+		std::uniform_int_distribution<> dice_i(0, size-1);
 		return dice_i(mt);
 	}
 

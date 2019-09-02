@@ -42,9 +42,7 @@ void CLASS::makeRoot() {
 
 // not minDFS
 Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID gid){
-	 std::cout << "debug EdgeSimulation" << std::endl; // debug
-	std::cout << _pattern << std::endl; // debug
-	std::cout << &_tracer << std::endl; // debug
+	 std::cout << "debug EdgeSimulation: " << _pattern << std::endl; // debug
 
 	Pattern pattern = _pattern;
 	EdgeTracer *tracer = &(_tracer);
@@ -58,12 +56,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 	vector<int> vid2time(g.size(), -1);
 
 	for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
-	 std::cout << "111111111111" << std::endl; // debug
-	 std::cout <<  "a:" << tracer->vpair.a << std::endl;
-	 std::cout <<  "b:" << tracer->vpair.b << std::endl;
-	 std::cout << "id:" << tracer->vpair.id << std::endl; // debug
 		vpairs[i] = tracer->vpair;
-	 std::cout << "222222222222" << std::endl; // debug
 		ID vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
 		tested[vidbase + 0] = true;
 		tested[vidbase + 1] = true;
@@ -89,7 +82,6 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 			for (auto& j : Dice::shuffle(g[i].size())) {
 				Edge& added_edge = g[i][j];
 				if (discovered[added_edge.to]) {
-	 std::cout << "333333333333a" << std::endl; // debug
 					// backward
 					if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
 						dcode.labels = Triplet(-1, added_edge.labels.y, -1);
@@ -101,16 +93,13 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 						ID vidbase = added_edge.id - (added_edge.id % 2);
 						tested[vidbase + 0] = true;
 						tested[vidbase + 1] = true;
-	 std::cout << "44444444444444" << std::endl; // debug
 						break;
 					}
 				} else {
 					// forward
 					dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
 					dcode.time.set(vid2time[i], maxtoc+1);
-	 std::cout << "333333333333b" << std::endl; // debug
 					pattern.push_back(dcode);
-	 std::cout << "44444444444444" << std::endl; // debug
 					cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
 					valid_flg = true;
 					// update discovered & tested & vid2time & maxtoc
@@ -132,8 +121,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 }
 
 bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
-	// std::cout << "stop_condition" << std::endl; // debug
-	 std::cout << pattern << std::endl;
+	 // std::cout << "stop_condition: " << pattern << std::endl; // debug
 	if (pattern.size() >= maxpat) {
 		// std::cout << "maxpat" << std::endl;
 		return true;
@@ -152,12 +140,12 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 
 // minDFS only DAG
 // !!! minimum pattern not correspond EdgeTracer
-void Gspan::scanGspan(const Pattern& _pattern) {
-	// std::cout << "debug scanGspan" << std::endl; // debug
+bool Gspan::scanGspan(const Pattern& _pattern) {
+	 std::cout << "scanGspan: " << _pattern << std::endl; // debug
 	Pattern pattern = _pattern;
 	cache[pattern].scan = true;
 	if (pattern.size() >= maxpat) {
-		return;
+		return false;
 	}
 	GraphToTracers g2tracers = cache[pattern].g2tracers;
 	size_t maxtoc = 0;
@@ -233,6 +221,10 @@ void Gspan::scanGspan(const Pattern& _pattern) {
 			}
 		}
 	}
+	
+	if (heap.empty()) {
+		return false;
+	}
 
 	vector<Pattern> childs;
 	for (auto itr = heap.begin(); itr != heap.end(); itr++) {
@@ -242,6 +234,7 @@ void Gspan::scanGspan(const Pattern& _pattern) {
 		cache[pattern].childs.push_back(itr->first);
 		cache.insert({itr->first, CacheRecord(itr->second, childs)});
 	}
+	return true;
 }
 
 size_t CLASS::support(GraphToTracers& g2tracers) {
@@ -254,4 +247,16 @@ size_t CLASS::support(GraphToTracers& g2tracers) {
 		support++;
 	}
 	return support;
+}
+
+void CLASS::one_edge_report(GraphToTracers& g2tracers){
+	std::cout << g2tracers.size() << " || " << endl;
+	for(GraphToTracers::iterator x = g2tracers.begin(); x != g2tracers.end(); ++x){
+		std::cout << x->first << ":" << endl;
+		for(Tracers::iterator y = x->second.begin(); y != x->second.end(); ++y){
+			std::cout << "(" << y->vpair.a << " " << y->vpair.b << ") ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
 }

@@ -15,7 +15,7 @@ class UCT {
 		vector<Pattern> path;
 
 		void selection(const Pattern&);
-		void expansion(const Pattern&);
+		void expansion();
 		bool update();
 		Pattern simulation(const Pattern&);
 		void backpropagation(double);

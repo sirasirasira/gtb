@@ -53,8 +53,9 @@ class Gspan {
 		size_t maxpat;
 
 		Pattern EdgeSimulation(const Pattern&, EdgeTracer&, ID);
-		void scanGspan(const Pattern&);
+		bool scanGspan(const Pattern&);
 		void makeRoot();
+		void one_edge_report(GraphToTracers& g2tracers);
 
 		inline const map<Pattern, CacheRecord>& getCache() {
 			return cache;
@@ -64,7 +65,7 @@ class Gspan {
 			return root;
 		}
 
-		inline void updataFeatureImportance(const Pattern& pattern, double importance) {
+		inline void updateFeatureImportance(const Pattern& pattern, double importance) {
 			cache.at(pattern).feature_importance += importance;
 		}
 

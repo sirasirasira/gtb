@@ -29,7 +29,7 @@ void CLASS::grow(const vector<ID>& train_targets, const vector<ID>& test_targets
 		return;
 	}
 	const auto best_pattern = db.spliter.getBestPattern();
-	db.gspan.updataFeatureImportance(best_pattern, db.spliter.getImportance());
+	db.gspan.updateFeatureImportance(best_pattern, db.spliter.getImportance());
 	vector<ID> posi_test_targets = db.finder.run(best_pattern, test_targets);
 	grow(posi_train_targets, posi_test_targets, depth + 1);
 	cout << string(depth, '-') << "* " << best_pattern << endl;

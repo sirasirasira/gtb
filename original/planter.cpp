@@ -29,7 +29,7 @@ void CLASS::grow(vector<ID> targets, size_t depth) {
 		return;
 	}
 	const auto best_pattern = db.spliter.getBestPattern();
-	db.gspan.updataFeatureImportance(best_pattern, db.spliter.getImportance());
+	db.gspan.updateFeatureImportance(best_pattern, db.spliter.getImportance());
 	grow(posi_targets, depth + 1);
 	cout << string(depth, '-') << "* " << best_pattern << endl;
 	vector<ID> nega_targets = Calculator::setDiff(targets, posi_targets);
