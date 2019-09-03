@@ -18,8 +18,8 @@ void CLASS::run(const vector<ID>& _targets) {
 	for (const auto& c : cache[root].childs) { // minimum itaration = one edge graphs size
 		for (unsigned int i = 0; i < setting.threshold; i++) {
 			path = {root, c};
-			const auto sim_pat = simulation(c);
-			posi = db.finder.run(sim_pat, targets);
+			pattern = simulation(c);
+			posi = db.finder.run(pattern, targets);
 			score = Calculator::score(db.ys, targets, posi);
 			backpropagation(score);
 		}
@@ -28,6 +28,10 @@ void CLASS::run(const vector<ID>& _targets) {
 	for (unsigned int i = 0; i < setting.iteration - (cache[root].childs.size() * setting.threshold); i++) {
 		path = {};
 		selection(root);
+		cout << "path" << endl;
+		for (auto x : path) {
+			cout << x << endl;
+		}
 		expansion();
 		if (update()) {
 			//TODO
@@ -65,12 +69,17 @@ void CLASS::selection(const Pattern& pattern) {
 }
 
 void CLASS::expansion() {
-	// std::cout << "expansion : " << pattern << std::endl; // debug
 	const Pattern pattern = path[path.size()-1];
+	 std::cout << "expansion : " << pattern << endl; // debug
 	if (cache[pattern].count >= setting.threshold) {
 		if (!cache[pattern].scan) {
 			if (db.gspan.scanGspan(pattern)) {
 				cache[pattern].terminal = false;
+	cout << "debug" << endl;
+	cout << "childs size: " <<cache[pattern].childs.size() << endl;
+	for (auto x : cache[pattern].childs) {
+		cout << x << endl;
+	}
 				path.push_back(cache[pattern].childs[0]);
 			}
 		} else {

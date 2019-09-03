@@ -54,7 +54,7 @@ class Gspan {
 
 		Pattern EdgeSimulation(const Pattern&, EdgeTracer&, ID);
 		bool scanGspan(const Pattern&);
-		void makeRoot();
+		void makeRoot(const vector<ID>&);
 		void one_edge_report(GraphToTracers& g2tracers);
 
 		inline const map<Pattern, CacheRecord>& getCache() {
@@ -97,7 +97,7 @@ class Gspan {
 				x.second.bound = 0;
 				x.second.count = 0;
 				x.second.sum_score = 0;
-				x.second.ucb = -DBL_MAX;
+				x.second.ucb = DBL_MAX;
 			}
 			cache[root].terminal = false;
 		}

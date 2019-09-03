@@ -4,7 +4,7 @@
 #include "Database.h"
 extern Database db;
 
-void CLASS::makeRoot() {
+void CLASS::makeRoot(const vector<ID>& targets) {
 	Pattern pattern;
 	DFSCode dcode;
 	dcode.labels = Triplet(-1, -1, -1);
@@ -16,7 +16,7 @@ void CLASS::makeRoot() {
 
 	auto& gdata = db.gdata;
 	map<Triplet, GraphToTracers> heap;
-	for (ID gid = 0; gid < (ID) gdata.size(); gid++) {
+	for (ID gid : targets) {
 		EdgeTracer cursor;
 		Graph& g = gdata[gid];
 		for (ID vid = 0; vid < (ID) g.size(); vid++) {
@@ -147,7 +147,6 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	if (pattern.size() >= maxpat) {
 		return false;
 	}
-	GraphToTracers g2tracers = cache[pattern].g2tracers;
 	size_t maxtoc = 0;
 	for (auto it = pattern.rbegin(); it != pattern.rend(); it++) {
 		if (it->time.a < it->time.b) {
@@ -163,7 +162,7 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	Pattern min_pat;
 
 	map<Pattern, GraphToTracers> heap;
-	for (auto x = g2tracers.begin(); x != g2tracers.end(); ++x) {
+	for (auto x = cache[pattern].g2tracers.begin(); x != cache[pattern].g2tracers.end(); ++x) {
 		int gid = x->first;
 		for (auto it = x->second.begin(); it != x->second.end(); ++it) {
 			// an instance (a sequence of vertex pairs) as vector "vpair"
@@ -222,6 +221,10 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 		}
 	}
 	
+	cout << "heap" << endl;
+	for (auto x : heap) {
+		cout << x.first << endl;
+	}
 	if (heap.empty()) {
 		return false;
 	}
@@ -238,6 +241,7 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 }
 
 size_t CLASS::support(GraphToTracers& g2tracers) {
+	// std::cout << "support" << std::endl; // debug
 	size_t support = 0;
 	for (auto x : g2tracers) {
 		auto& id = x.first;
