@@ -66,6 +66,22 @@ inline bool operator < (const Pattern& l, const Pattern& r) {
 	return false;
 }
 
+inline bool operator != (const Pattern& l, const Pattern& r) {
+	return !(l == r);
+}
+
+inline bool operator == (const Pattern& l, const Pattern& r) {
+	if (l.size() != r.size()) return false;
+	for (size_t i = 0; i < l.size(); i++) {
+		if (l[i] == r[i]) {
+			continue;
+		} else {
+			return false;
+		}
+	}
+	return true;
+}
+
 inline std::ostream& operator << (std::ostream& os, const Pattern pattern) {
 	if (pattern.empty()) return os;
 	os << "(" << pattern[0].labels.x << ") " << pattern[0].labels.y << " (0f" << pattern[0].labels.z << ")";
@@ -73,7 +89,8 @@ inline std::ostream& operator << (std::ostream& os, const Pattern pattern) {
 		if (pattern[i].time.a < pattern[i].time.b) {
 			os << " " << pattern[i].labels.y << " (" << pattern[i].time.a << "f" << pattern[i].labels.z << ")";
 		} else {
-			os << " " << pattern[i].labels.y << " (b" << pattern[i].time.b << ")";
+			//os << " " << pattern[i].labels.y << " (b" << pattern[i].time.b << ")";
+			os << " " << pattern[i].labels.y << " (" << pattern[i].time.a << "b" << pattern[i].time.b << ")";
 		}
 	}
 	return os;

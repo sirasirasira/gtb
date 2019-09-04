@@ -57,7 +57,7 @@ class Gspan {
 		void makeRoot(const vector<ID>&);
 		void one_edge_report(GraphToTracers& g2tracers);
 
-		inline const map<Pattern, CacheRecord>& getCache() {
+		inline map<Pattern, CacheRecord>& getCache() {
 			return cache;
 		}
 

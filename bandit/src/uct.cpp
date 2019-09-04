@@ -11,6 +11,9 @@ void CLASS::run(const vector<ID>& _targets) {
 	db.gspan.clearUCB();
 	cache = db.gspan.getCache();
 	root = db.gspan.getRoot();
+	cout << &(db.gspan.getCache()) << endl << &cache << endl;
+	cout << typeid(db.gspan.getCache()).name() << endl << typeid(cache).name() << endl;
+	cout << &(db.gspan.getRoot()) << endl << &root << endl;
 	Pattern pattern;
 	vector<ID> posi;
 	double score;
@@ -75,6 +78,7 @@ void CLASS::expansion() {
 		if (!cache[pattern].scan) {
 			if (db.gspan.scanGspan(pattern)) {
 				cache[pattern].terminal = false;
+	cache = db.gspan.getCache();
 	cout << "debug" << endl;
 	cout << "childs size: " <<cache[pattern].childs.size() << endl;
 	for (auto x : cache[pattern].childs) {

@@ -4,7 +4,7 @@
 #include "Calculator.h" 
 
 Pattern CLASS::convert(Pattern& pattern) {
-	// std::cout << "debug isMin" << std::endl; // debug
+	// std::cout << "debug isMin: " << pattern << std::endl; // debug
 	if (pattern.size() == 1) return pattern;
 	Graph g = toGraph(pattern);
 	map<Triplet, Tracers> heap;
@@ -22,12 +22,12 @@ Pattern CLASS::convert(Pattern& pattern) {
 	auto itr = heap.begin();
 	comp[0].labels = itr->first;
 	comp[0].time.set(0,1);
-	pattern_ptr = &pattern;
+	//pattern_ptr = &pattern;
 	return minChecker(comp, g, itr->second);
 }
 
 Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
-	 // std::cout << "debug minChecker" << std::endl; // debug
+	// std::cout << "debug minChecker" << std::endl; // debug
 
 	// build right most path
 	vector<size_t> rm_path_index;
@@ -49,8 +49,8 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		tracer = &(*itr);
 		//vector<bool> discovered(g.size());
 		//vector<bool> tested(g.num_of_edges);
-		vector<char> discovered(g.size(), false); // as bool vector
-		vector<char> tested(g.num_of_edges, false); // as bool vector
+		vector<bool> discovered(g.size(), false); // as bool vector
+		vector<bool> tested(g.num_of_edges, false); // as bool vector
 
 		for (int i = vpairs.size() - 1; i >= 0; i--, tracer = tracer->predec) {
 			vpairs[i] = tracer->vpair;
@@ -107,8 +107,8 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		int i = rm_path_index[j];
 		for (auto itr = tracers.begin(); itr != tracers.end(); itr++) {
 			tracer = &(*itr);
-			vector<char> discovered(g.size(), false); // as bool vector
-			vector<char> tested(g.num_of_edges, false); // as bool vector
+			vector<bool> discovered(g.size(), false); // as bool vector
+			vector<bool> tested(g.num_of_edges, false); // as bool vector
 			for (int k = vpairs.size() - 1; k >= 0; k--, tracer = tracer->predec) {
 				vpairs[k] = tracer->vpair;
 				tested[vpairs[k].id] = true;

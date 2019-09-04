@@ -57,9 +57,9 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 
 	for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
 		vpairs[i] = tracer->vpair;
-		ID vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
-		tested[vidbase + 0] = true;
-		tested[vidbase + 1] = true;
+		ID eidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+		tested[eidbase + 0] = true;
+		tested[eidbase + 1] = true;
 		discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
 
 		vid2time[vpairs[i].b] = pattern[i].time.b;
@@ -81,18 +81,19 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 			}
 			for (auto& j : Dice::shuffle(g[i].size())) {
 				Edge& added_edge = g[i][j];
+				ID eidbase = added_edge.id - (added_edge.id % 2);
 				if (discovered[added_edge.to]) {
 					// backward
-					if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
+					// if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
+					if (!tested[added_edge.id]) {
 						dcode.labels = Triplet(-1, added_edge.labels.y, -1);
 						dcode.time.set(vid2time[i], vid2time[added_edge.to]);
 						pattern.push_back(dcode);
 						cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
 						valid_flg = true;
 						// update tested
-						ID vidbase = added_edge.id - (added_edge.id % 2);
-						tested[vidbase + 0] = true;
-						tested[vidbase + 1] = true;
+						tested[eidbase + 0] = true;
+						tested[eidbase + 1] = true;
 						break;
 					}
 				} else {
@@ -104,9 +105,8 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 					valid_flg = true;
 					// update discovered & tested & vid2time & maxtoc
 					discovered[added_edge.to] = true;
-					ID vidbase = added_edge.id - (added_edge.id % 2);
-					tested[vidbase + 0] = true;
-					tested[vidbase + 1] = true;
+					tested[eidbase + 0] = true;
+					tested[eidbase + 1] = true;
 					vid2time[added_edge.to] = maxtoc+1;
 					maxtoc++;
 					break;
@@ -138,7 +138,7 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 	return false;
 }
 
-// minDFS only DAG
+// only minDFS in DAG
 // !!! minimum pattern not correspond EdgeTracer
 bool Gspan::scanGspan(const Pattern& _pattern) {
 	 std::cout << "scanGspan: " << _pattern << std::endl; // debug
@@ -162,23 +162,26 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	Pattern min_pat;
 
 	map<Pattern, GraphToTracers> heap;
+	vector<set<ID>> ids_dic;
 	for (auto x = cache[pattern].g2tracers.begin(); x != cache[pattern].g2tracers.end(); ++x) {
 		int gid = x->first;
+		Graph& g = db.gdata[gid];
+		ids_dic = {};
 		for (auto it = x->second.begin(); it != x->second.end(); ++it) {
 			// an instance (a sequence of vertex pairs) as vector "vpair"
 			tracer = &(*it);
-
-			Graph& g = db.gdata[gid];
 			vector<bool> tested(g.num_of_edges);
 			vector<bool> discovered(g.size());
 			vector<int> vid2time(g.size(), -1);
+			set<ID> ids;
 
 			for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
 				vpairs[i] = tracer->vpair;
-				auto vidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
-				tested[vidbase + 0] = true;
-				tested[vidbase + 1] = true;
+				ID eidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+				tested[eidbase + 0] = true;
+				tested[eidbase + 1] = true;
 				discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+				ids.insert({eidbase, eidbase+1});
 
 				vid2time[vpairs[i].b] = pattern[i].time.b;
 				if (i == 0) {
@@ -193,29 +196,37 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 				}
 				for (unsigned int j = 0; j < g[i].size(); j++) {
 					Edge& added_edge = g[i][j];
-					if (discovered[added_edge.to]) {
-						// backward
-						if (!tested[added_edge.id] and vid2time[i] > vid2time[added_edge.to]) {
-							dcode.labels = Triplet(-1, added_edge.labels.y, -1);
-							dcode.time.set(vid2time[i], vid2time[added_edge.to]);
+					ID eidbase = added_edge.id - (added_edge.id % 2);
+					ids.insert({eidbase, eidbase+1});
+					if (find(ids_dic.begin(), ids_dic.end(), ids) == ids_dic.end()) { // not found
+						ids_dic.push_back(ids);
+						if (discovered[added_edge.to]) {
+							// backward
+							// if (!tested[added_edge.id] and (vid2time[i] > vid2time[added_edge.to])) {
+							if (!tested[added_edge.id]) {
+								dcode.labels = Triplet(-1, added_edge.labels.y, -1);
+								dcode.time.set(vid2time[i], vid2time[added_edge.to]);
+								pattern.push_back(dcode);
+								min_pat = is_min.convert(pattern);
+								pkey.set(added_edge.labels.y,vid2time[added_edge.to]);
+								cursor.set(i,added_edge.to,added_edge.id,&(*it));
+								heap[min_pat][gid].push_back(cursor);
+								pattern.pop_back();
+							}
+						} else {
+							// forward
+							dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
+							dcode.time.set(vid2time[i], maxtoc+1);
 							pattern.push_back(dcode);
 							min_pat = is_min.convert(pattern);
-							pkey.set(added_edge.labels.y,vid2time[added_edge.to]);
+							pkey.set(added_edge.labels.y,added_edge.labels.z);
 							cursor.set(i,added_edge.to,added_edge.id,&(*it));
 							heap[min_pat][gid].push_back(cursor);
 							pattern.pop_back();
 						}
-					} else {
-						// forward
-						dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
-						dcode.time.set(vid2time[i], maxtoc);
-						pattern.push_back(dcode);
-						min_pat = is_min.convert(pattern);
-						pkey.set(added_edge.labels.y,added_edge.labels.z);
-						cursor.set(i,added_edge.to,added_edge.id,&(*it));
-						heap[min_pat][gid].push_back(cursor);
-						pattern.pop_back();
 					}
+					ids.erase(eidbase);
+					ids.erase(eidbase+1);
 				}
 			}
 		}
@@ -230,14 +241,17 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	}
 
 	vector<Pattern> childs;
+	bool child_flg = false;
 	for (auto itr = heap.begin(); itr != heap.end(); itr++) {
 		if (support(itr->second) < minsup) {
+			cout << "not support" << endl;
 			continue;
 		}
 		cache[pattern].childs.push_back(itr->first);
 		cache.insert({itr->first, CacheRecord(itr->second, childs)});
+		child_flg = true;
 	}
-	return true;
+	return child_flg;
 }
 
 size_t CLASS::support(GraphToTracers& g2tracers) {
