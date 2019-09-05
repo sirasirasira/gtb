@@ -11,7 +11,7 @@ struct Setting {
 	double needed_impurity_decrease = 0.0;
 	size_t max_depth = -1;
 	size_t iteration = 100;
-	size_t threshold = 0;
+	size_t threshold = 1;
 	double c = 1;
 
 	void print() {

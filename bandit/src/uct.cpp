@@ -13,23 +13,9 @@ void CLASS::run(const vector<ID>& _targets) {
 	vector<ID> posi;
 	double score;
 
-	for (const auto& c : cache[root].childs) { // minimum itaration = one edge graphs size
-		for (unsigned int i = 0; i < setting.threshold; i++) {
-			path = {root, c};
-			pattern = simulation(c);
-			posi = db.finder.run(pattern, targets);
-			score = Calculator::score(db.ys, targets, posi);
-			backpropagation(score);
-		}
-	}
-
-	for (unsigned int i = 0; i < setting.iteration - (cache[root].childs.size() * setting.threshold); i++) {
+	for (unsigned int i = 0; i < setting.iteration; i++) {
 		path = {};
 		selection(root);
-		cout << "path" << endl;
-		for (auto x : path) {
-			cout << x << endl;
-		}
 		expansion();
 		if (update()) {
 			//TODO
@@ -37,16 +23,14 @@ void CLASS::run(const vector<ID>& _targets) {
 			continue;
 		}
 		pattern = path[path.size()-1];
-		if (cache[pattern].terminal) {
-			pattern = simulation(pattern);
+		pattern = simulation(pattern);
+		if (cache.find(pattern) == cache.end()) {
 			posi = db.finder.run(pattern, targets);
-			score = Calculator::score(db.ys, targets, posi);
-			backpropagation(score);
 		} else {
 			posi = db.gspan.getPosiIds(cache[pattern].g2tracers);
-			score = Calculator::score(db.ys, targets, posi);
-			backpropagation(score);
 		}
+		score = Calculator::score(db.ys, targets, posi);
+		backpropagation(score);
 	}
 }
 
@@ -54,16 +38,22 @@ void CLASS::selection(const Pattern& pattern) {
 	// std::cout << "selection : " << pattern << std::endl; // debug
 	path.push_back(pattern);
 	if (!cache[pattern].terminal) {
-		cout << "childs" << endl;
-		for(auto x: cache[pattern].childs) {
-			cout << x << " ucb " << cache[x].ucb << endl;
-		}
 		Pattern best_child;
+		double ucb;
 		double max_ucb = -DBL_MAX;
 		for (auto& c : cache[pattern].childs) {
-			if (cache[c].ucb > max_ucb) {
-				best_child = c;
-				max_ucb = cache[c].ucb;
+			if (cache[c].prune) {
+				continue;
+			} else {
+				if (cache[c].count == 0) {
+					ucb = DBL_MAX;
+				} else {
+					ucb = (cache[c].sum_score / cache[c].count) + (setting.c * sqrt(2 * log(cache[pattern].count / cache[c].count)));
+				}
+				if (ucb > max_ucb) {
+					best_child = c;
+					max_ucb = ucb;
+				}
 			}
 		}
 		selection(best_child);
@@ -72,7 +62,7 @@ void CLASS::selection(const Pattern& pattern) {
 
 void CLASS::expansion() {
 	const Pattern pattern = path[path.size()-1];
-	 std::cout << "expansion: " << pattern << endl; // debug
+	// std::cout << "expansion: " << pattern << endl; // debug
 	if (cache[pattern].count >= setting.threshold) {
 		if (!cache[pattern].scan) {
 			if (db.gspan.scanGspan(pattern)) {
@@ -96,7 +86,7 @@ bool CLASS::update() {
 	int pruning_index;
 	for (unsigned int i = 0; i < path.size(); i++) {
 		if (pruning) {
-			cache[path[i]].ucb = -DBL_MAX;
+			cache[path[i]].prune = true;
 		} else {
 			if (cache[path[i]].count == 0) {
 				posi = db.gspan.getPosiIds(cache[path[i]].g2tracers);
@@ -105,7 +95,7 @@ bool CLASS::update() {
 				bound = Calculator::bound(db.ys, targets, posi);
 				cache[path[i]].bound = bound;
 				if (db.spliter.isBounded(bound)){
-					cache[path[i]].ucb = -DBL_MAX;
+					cache[path[i]].prune = true;
 					pruning = true;
 					pruning_index = i;
 				}
@@ -113,30 +103,34 @@ bool CLASS::update() {
 		}
 	}
 	if (pruning) {
-		path.resize(pruning_index+1);
+		path.resize(pruning_index);
 	}
 	return pruning;
 }
 
 Pattern CLASS::simulation(const Pattern& pattern) {
+	// cout << "simulation: " << pattern << endl;
 	auto& g2tracers = cache[pattern].g2tracers;
-	auto itr = g2tracers.begin();
-	std::advance(itr, Dice::id(g2tracers.size()));
-	auto& tracers = itr->second;
+	// gid is in g2tracers and in targets
+	vector<ID> keys(g2tracers.size());
+	size_t i = 0;
+	for (auto& x : g2tracers) {
+		keys[i] = x.first;
+		i++;
+	}
+	auto gids = Calculator::setIntersec(targets, keys);
+	ID gid = gids[Dice::id(gids.size())];
+	auto& tracers = g2tracers[gid];
 	auto& tracer = tracers[Dice::id(tracers.size())];
 	
-	return db.gspan.EdgeSimulation(pattern, tracer, itr->first);
+	return db.gspan.EdgeSimulation(pattern, tracer, gid);
 }
  
 void CLASS::backpropagation(double score) {
+	// cout << "backpropagation: " << score << endl;
 	for (int i = path.size() - 1; i > 0; i--) {
 		cache[path[i]].count++;
 		cache[path[i]].sum_score -= score; // score is mse (lower is better)
-		double count = cache[path[i]].count;
-		double ave = cache[path[i]].sum_score / count;
-		double p_count = cache[path[i-1]].count + 1;
-		cache[path[i]].ucb = ave + setting.c * sqrt(2 * log(p_count) / count);
-		cout << "backpropagation: " << endl << "count: " << count << "p_count: " << p_count << "sum_score: " << cache[path[i]].sum_score << "ave: " << ave << "ucb: " << cache[path[i]].ucb << endl;
 	}
 	cache[root].count++;
 }

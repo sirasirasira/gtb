@@ -12,16 +12,16 @@ struct CacheRecord {
 	double bound;
 	size_t count;
 	double sum_score;
-	double ucb;
 	double feature_importance;
 	bool scan;
+	bool prune;
 	CacheRecord() {
 		terminal = true;
 		bound = 0;
 		count = 0;
 		sum_score = 0;
-		ucb = DBL_MAX;
 		feature_importance = 0;
+		prune = false;
 		scan = false;
 	}
 	CacheRecord(vector<Pattern> childs)
@@ -30,8 +30,8 @@ struct CacheRecord {
 			bound = 0;
 			count = 0;
 			sum_score = 0;
-			ucb = DBL_MAX;
 			feature_importance = 0;
+			prune = false;
 			scan = false;
 		}
 	CacheRecord(GraphToTracers g2tracers, vector<Pattern> childs)
@@ -40,8 +40,8 @@ struct CacheRecord {
 			bound = 0;
 			count = 0;
 			sum_score = 0;
-			ucb = DBL_MAX;
 			feature_importance = 0;
+			prune = false;
 			scan = false;
 		}
 };
@@ -97,7 +97,7 @@ class Gspan {
 				x.second.bound = 0;
 				x.second.count = 0;
 				x.second.sum_score = 0;
-				x.second.ucb = DBL_MAX;
+				x.second.prune = false;
 			}
 			cache[root].terminal = false;
 		}

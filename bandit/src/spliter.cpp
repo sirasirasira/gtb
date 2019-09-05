@@ -22,7 +22,7 @@ void CLASS::prepare(const vector<ID>& _targets) {
 }
 
 vector<ID> CLASS::run(const vector<ID>& _targets) {
-	// std::cout << "debug spliter run" << std::endl; // debug
+	 std::cout << "spliter run" << std::endl; // debug
 	targets = _targets;
 	best_pattern = {};
 	initMinScore();

@@ -41,7 +41,7 @@ void CLASS::makeRoot(const vector<ID>& targets) {
 }
 
 // not minDFS
-Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID gid){
+Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID gid) {
 	// std::cout << "EdgeSimulation: " << _pattern << std::endl; // debug
 
 	Pattern pattern = _pattern;
@@ -121,7 +121,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 }
 
 bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
-	 // std::cout << "stop_condition: " << pattern << std::endl; // debug
+	// std::cout << "stop_condition: " << pattern << std::endl; // debug
 	if (pattern.size() >= maxpat) {
 		// std::cout << "maxpat" << std::endl;
 		return true;
@@ -141,7 +141,7 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 // only minDFS in DAG
 // !!! minimum pattern not correspond EdgeTracer
 bool Gspan::scanGspan(const Pattern& _pattern) {
-	 std::cout << "scanGspan: " << _pattern << std::endl; // debug
+	std::cout << "scanGspan: " << _pattern << std::endl; // debug
 	Pattern pattern = _pattern;
 	cache[pattern].scan = true;
 	if (pattern.size() >= maxpat) {
@@ -162,7 +162,7 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	Pattern min_pat;
 
 	map<Pattern, GraphToTracers> heap;
-	vector<set<ID>> ids_dic;
+	set<set<ID>> ids_dic;
 	for (auto x = cache[pattern].g2tracers.begin(); x != cache[pattern].g2tracers.end(); ++x) {
 		int gid = x->first;
 		Graph& g = db.gdata[gid];
@@ -173,7 +173,7 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 			vector<bool> tested(g.num_of_edges);
 			vector<bool> discovered(g.size());
 			vector<int> vid2time(g.size(), -1);
-			set<ID> ids;
+			set<ID> ids = {};
 
 			for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
 				vpairs[i] = tracer->vpair;
@@ -195,15 +195,19 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 					continue;
 				}
 				for (unsigned int j = 0; j < g[i].size(); j++) {
-					Edge& added_edge = g[i][j];
+					const Edge& added_edge = g[i][j];
 					ID eidbase = added_edge.id - (added_edge.id % 2);
 					ids.insert({eidbase, eidbase+1});
-					if (find(ids_dic.begin(), ids_dic.end(), ids) == ids_dic.end()) { // not found
-						ids_dic.push_back(ids);
+					if (find(ids_dic.begin(), ids_dic.end(), ids) != ids_dic.end()) { // found
+						if (!discovered[added_edge.to]) {
+							ids.erase(eidbase);
+							ids.erase(eidbase+1);
+						}
+					} else { // not found
 						if (discovered[added_edge.to]) {
 							// backward
-							// if (!tested[added_edge.id] and (vid2time[i] > vid2time[added_edge.to])) {
-							if (!tested[added_edge.id]) {
+							if (!tested[added_edge.id] and (vid2time[i] > vid2time[added_edge.to])) {
+								ids_dic.insert(ids);
 								dcode.labels = Triplet(-1, added_edge.labels.y, -1);
 								dcode.time.set(vid2time[i], vid2time[added_edge.to]);
 								pattern.push_back(dcode);
@@ -215,6 +219,7 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 							}
 						} else {
 							// forward
+							ids_dic.insert(ids);
 							dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
 							dcode.time.set(vid2time[i], maxtoc+1);
 							pattern.push_back(dcode);
@@ -224,18 +229,20 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 							heap[min_pat][gid].push_back(cursor);
 							pattern.pop_back();
 						}
+						ids.erase(eidbase);
+						ids.erase(eidbase+1);
 					}
-					ids.erase(eidbase);
-					ids.erase(eidbase+1);
 				}
 			}
 		}
 	}
-	
+
+	/*
 	cout << "heap" << endl;
 	for (auto x : heap) {
 		cout << x.first << endl;
 	}
+	*/
 	if (heap.empty()) {
 		return false;
 	}
@@ -244,7 +251,6 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 	bool child_flg = false;
 	for (auto itr = heap.begin(); itr != heap.end(); itr++) {
 		if (support(itr->second) < minsup) {
-			cout << "not support" << endl;
 			continue;
 		}
 		cache[pattern].childs.push_back(itr->first);
@@ -267,14 +273,16 @@ size_t CLASS::support(GraphToTracers& g2tracers) {
 	return support;
 }
 
-void CLASS::one_edge_report(GraphToTracers& g2tracers){
-	std::cout << g2tracers.size() << " || " << endl;
-	for(GraphToTracers::iterator x = g2tracers.begin(); x != g2tracers.end(); ++x){
-		std::cout << x->first << ":" << endl;
-		for(Tracers::iterator y = x->second.begin(); y != x->second.end(); ++y){
-			std::cout << "(" << y->vpair.a << " " << y->vpair.b << ") ";
-		}
-		std::cout << std::endl;
-	}
-	std::cout << std::endl;
-}
+/*
+   void CLASS::one_edge_report(GraphToTracers& g2tracers){
+   std::cout << g2tracers.size() << " || " << endl;
+   for(GraphToTracers::iterator x = g2tracers.begin(); x != g2tracers.end(); ++x){
+   std::cout << x->first << ":" << endl;
+   for(Tracers::iterator y = x->second.begin(); y != x->second.end(); ++y){
+   std::cout << "(" << y->vpair.a << " " << y->vpair.b << ") ";
+   }
+   std::cout << std::endl;
+   }
+   std::cout << std::endl;
+   }
+   */
