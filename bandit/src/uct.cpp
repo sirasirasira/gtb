@@ -7,6 +7,7 @@ extern Setting setting;
 extern Database db;
 
 void CLASS::run(const vector<ID>& _targets) {
+	// std::cout << "uct run" << std::endl; // debug
 	targets = _targets;
 	db.gspan.clearUCB();
 	Pattern pattern;
@@ -35,7 +36,7 @@ void CLASS::run(const vector<ID>& _targets) {
 }
 
 void CLASS::selection(const Pattern& pattern) {
-	// std::cout << "selection : " << pattern << std::endl; // debug
+	// std::cout << "selection: " << pattern << std::endl; // debug
 	path.push_back(pattern);
 	if (!cache[pattern].terminal) {
 		Pattern best_child;

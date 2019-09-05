@@ -2,17 +2,20 @@
 #define CLASS IsMin
 
 #include "Calculator.h" 
+#include "Database.h"
+extern Database db;
 
-Pattern CLASS::convert(Pattern& pattern) {
-	// std::cout << "debug isMin: " << pattern << std::endl; // debug
-	if (pattern.size() == 1) return pattern;
-	Graph g = toGraph(pattern);
+pair<Pattern, EdgeTracer> CLASS::convert(const EdgeTracer& tracer, ID gid) {
+	// std::cout << "isMin" << std::endl; // debug
+	Graph& original_g = db.gdata[gid];
+	Graph g = toGraph(tracer, original_g);
+
 	map<Triplet, Tracers> heap;
-	EdgeTracer cursor;
+	EdgeTracer cursor(1);
 	for (ID vid = 0; vid < (ID) g.size(); vid++) {
 		for (const auto& e : g[vid]) {
 			if (e.labels.x <= e.labels.z) {
-				cursor.set(vid, e.to, e.id, nullptr);
+				cursor[0] = VertexPair(vid, e.to, e.id, e.labels.y);
 				heap[e.labels].push_back(cursor);
 			}
 		}
@@ -26,8 +29,8 @@ Pattern CLASS::convert(Pattern& pattern) {
 	return minChecker(comp, g, itr->second);
 }
 
-Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
-	// std::cout << "debug minChecker" << std::endl; // debug
+pair<Pattern, EdgeTracer> CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
+	// std::cout << "minChecker: " << comp << std::endl; // debug
 
 	// build right most path
 	vector<size_t> rm_path_index;
@@ -37,28 +40,25 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 	int minlabel = comp[0].labels.x;
 	int maxtoc = comp[rm_path_index[0]].time.b;
 
-	vector<VertexPair> vpairs(comp.size());
 	map<Pair, Tracers> b_heap;
 	map<Pair, Tracers> f_heap;
-	EdgeTracer* tracer;
 	EdgeTracer cursor;
 	Pair pkey;
 
 	for (auto itr = tracers.begin(); itr != tracers.end(); itr++) {
 		// an instance (a sequence of vertex pairs) as vector "vpair"
-		tracer = &(*itr);
+		cursor = *itr;
 		//vector<bool> discovered(g.size());
 		//vector<bool> tested(g.num_of_edges);
 		vector<bool> discovered(g.size(), false); // as bool vector
 		vector<bool> tested(g.num_of_edges, false); // as bool vector
 
-		for (int i = vpairs.size() - 1; i >= 0; i--, tracer = tracer->predec) {
-			vpairs[i] = tracer->vpair;
-			tested[vpairs[i].id] = true;
-			discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+		for (int i = cursor.size()-1; i >= 0; --i) {
+			tested[cursor[i].id] = true;
+			discovered[cursor[i].a] = discovered[cursor[i].b] = true;
 		}
 
-		Pair& rm_vpair = vpairs[rm_path_index[0]];
+		Pair& rm_vpair = cursor[rm_path_index[0]];
 
 		// grow from the right most vertex
 		for (size_t i = 0; i < g[rm_vpair.b].size(); i++) {
@@ -67,18 +67,20 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 			for (size_t j = 1; j < rm_path_index.size(); j++) {
 				size_t idx = rm_path_index[j];
 				if (tested[added_edge.id]) continue;
-				if (vpairs[idx].a != added_edge.to) continue;
+				if (cursor[idx].a != added_edge.to) continue;
 				if (comp[idx].labels <= added_edge.labels.reverse()) {
 					pkey.set(comp[idx].time.a, added_edge.labels.y);
-					cursor.set(rm_vpair.b, added_edge.to, added_edge.id, &(*itr));
+					cursor.push_back(VertexPair(rm_vpair.b, added_edge.to, added_edge.id, added_edge.labels.y));
 					b_heap[pkey].push_back(cursor);
+					cursor.pop_back();
 				}
 			}
 			// forward from the right most vertex
 			if (minlabel > added_edge.labels.z or discovered[added_edge.to]) continue;
 			pkey.set(added_edge.labels.y, added_edge.labels.z);
-			cursor.set(rm_vpair.b, added_edge.to, added_edge.id, &(*itr));
+			cursor.push_back(VertexPair(rm_vpair.b, added_edge.to, added_edge.id, added_edge.labels.y));
 			f_heap[pkey].push_back(cursor);
+			cursor.pop_back();
 		}
 	}
 
@@ -106,23 +108,26 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 	for (size_t j = 0; j < rm_path_index.size(); j++) {
 		int i = rm_path_index[j];
 		for (auto itr = tracers.begin(); itr != tracers.end(); itr++) {
-			tracer = &(*itr);
+			cursor = *itr;
 			vector<bool> discovered(g.size(), false); // as bool vector
 			vector<bool> tested(g.num_of_edges, false); // as bool vector
-			for (int k = vpairs.size() - 1; k >= 0; k--, tracer = tracer->predec) {
-				vpairs[k] = tracer->vpair;
-				tested[vpairs[k].id] = true;
-				discovered[vpairs[k].a] = discovered[vpairs[k].b] = true;
+
+			for (int k = cursor.size() - 1; k >= 0; k--) {
+				tested[cursor[k].id] = true;
+				discovered[cursor[k].a] = discovered[cursor[k].b] = true;
 			}
-			Pair& from_vpair = vpairs[i];
+
+			Pair& from_vpair = cursor[i];
+
 			for (size_t k = 0; k < g[from_vpair.a].size(); k++) {
 				Edge& added_edge = g[from_vpair.a][k];
 				if (minlabel > added_edge.labels.z or discovered[added_edge.to]) continue;
 				if (comp[i].labels <= added_edge.labels) {
 					from = comp[i].time.a;
 					pkey.set(added_edge.labels.y, added_edge.labels.z);
-					cursor.set(from_vpair.a, added_edge.to, added_edge.id, &(*itr));
+					cursor.push_back(VertexPair(from_vpair.a, added_edge.to, added_edge.id, added_edge.labels.y));
 					ff_heap[pkey].push_back(cursor);
+					cursor.pop_back();
 				}
 			}
 		}
@@ -137,6 +142,6 @@ Pattern CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tracers) {
 		return minChecker(comp, g, ff_itr->second);
 	}
 	//return true;
-	return comp;
+	return make_pair(comp, tracers[0]);
 }
 

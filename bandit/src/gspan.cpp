@@ -5,6 +5,7 @@
 extern Database db;
 
 void CLASS::makeRoot(const vector<ID>& targets) {
+	// std::cout << "makeRoot" << std::endl; // debug
 	Pattern pattern;
 	DFSCode dcode;
 	dcode.labels = Triplet(-1, -1, -1);
@@ -17,12 +18,12 @@ void CLASS::makeRoot(const vector<ID>& targets) {
 	auto& gdata = db.gdata;
 	map<Triplet, GraphToTracers> heap;
 	for (ID gid : targets) {
-		EdgeTracer cursor;
+		EdgeTracer cursor(1);
 		Graph& g = gdata[gid];
 		for (ID vid = 0; vid < (ID) g.size(); vid++) {
 			for (auto e : g[vid]) {
 				if (e.labels.x <= e.labels.z) {
-					cursor.set(vid, e.to, e.id, nullptr);
+					cursor[0] = VertexPair(vid, e.to, e.id, e.labels.y);
 					heap[e.labels][gid].push_back(cursor);
 				}
 			}
@@ -41,13 +42,11 @@ void CLASS::makeRoot(const vector<ID>& targets) {
 }
 
 // not minDFS
-Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID gid) {
+Pattern CLASS::EdgeSimulation(const Pattern& _pattern, const EdgeTracer& _tracer, ID gid) {
 	// std::cout << "EdgeSimulation: " << _pattern << std::endl; // debug
 
 	Pattern pattern = _pattern;
-	EdgeTracer *tracer = &(_tracer);
-	vector<VertexPair> vpairs(pattern.size());
-	EdgeTracer cursor;
+	EdgeTracer cursor = _tracer;
 
 	Graph& g = db.gdata[gid];
 	size_t maxtoc = 0;
@@ -55,16 +54,15 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 	vector<bool> discovered(g.size()); // node
 	vector<int> vid2time(g.size(), -1);
 
-	for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
-		vpairs[i] = tracer->vpair;
-		ID eidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+	for (int i = cursor.size()-1; i >= 0; --i) {
+		ID eidbase = cursor[i].id - (cursor[i].id % 2); // hit to_edge and from_edge
 		tested[eidbase + 0] = true;
 		tested[eidbase + 1] = true;
-		discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+		discovered[cursor[i].a] = discovered[cursor[i].b] = true;
 
-		vid2time[vpairs[i].b] = pattern[i].time.b;
+		vid2time[cursor[i].b] = pattern[i].time.b;
 		if (i == 0) {
-			vid2time[vpairs[i].a] = pattern[i].time.a;
+			vid2time[cursor[i].a] = pattern[i].time.a;
 		}
 		if (maxtoc < pattern[i].time.b) {
 			maxtoc = pattern[i].time.b;
@@ -89,7 +87,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 						dcode.labels = Triplet(-1, added_edge.labels.y, -1);
 						dcode.time.set(vid2time[i], vid2time[added_edge.to]);
 						pattern.push_back(dcode);
-						cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
+						cursor.push_back(VertexPair(i, added_edge.to, added_edge.id, added_edge.labels.y));
 						valid_flg = true;
 						// update tested
 						tested[eidbase + 0] = true;
@@ -101,7 +99,7 @@ Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID g
 					dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
 					dcode.time.set(vid2time[i], maxtoc+1);
 					pattern.push_back(dcode);
-					cursor.set(i,added_edge.to,added_edge.id,&(*tracer));
+					cursor.push_back(VertexPair(i, added_edge.to, added_edge.id, added_edge.labels.y));
 					valid_flg = true;
 					// update discovered & tested & vid2time & maxtoc
 					discovered[added_edge.to] = true;
@@ -140,23 +138,13 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 
 // only minDFS in DAG
 // !!! minimum pattern not correspond EdgeTracer
-bool Gspan::scanGspan(const Pattern& _pattern) {
-	std::cout << "scanGspan: " << _pattern << std::endl; // debug
-	Pattern pattern = _pattern;
+bool Gspan::scanGspan(const Pattern& pattern) {
+	// std::cout << "scanGspan: " << pattern << std::endl; // debug
 	cache[pattern].scan = true;
 	if (pattern.size() >= maxpat) {
 		return false;
 	}
-	size_t maxtoc = 0;
-	for (auto it = pattern.rbegin(); it != pattern.rend(); it++) {
-		if (it->time.a < it->time.b) {
-			maxtoc = it->time.b;
-			break;
-		}
-	}
-	vector<VertexPair> vpairs(pattern.size());
-	EdgeTracer *tracer;
-	Pair pkey;
+
 	EdgeTracer cursor;
 	DFSCode dcode;
 	Pattern min_pat;
@@ -169,24 +157,17 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 		ids_dic = {};
 		for (auto it = x->second.begin(); it != x->second.end(); ++it) {
 			// an instance (a sequence of vertex pairs) as vector "vpair"
-			tracer = &(*it);
+			cursor = *it;
 			vector<bool> tested(g.num_of_edges);
 			vector<bool> discovered(g.size());
-			vector<int> vid2time(g.size(), -1);
 			set<ID> ids = {};
 
-			for (int i = vpairs.size()-1; i >= 0; --i, tracer = tracer->predec) {
-				vpairs[i] = tracer->vpair;
-				ID eidbase = vpairs[i].id - (vpairs[i].id % 2); // hit to_edge and from_edge
+			for (int i = cursor.size()-1; i >= 0; --i) {
+				ID eidbase = cursor[i].id - (cursor[i].id % 2); // hit to_edge and from_edge
 				tested[eidbase + 0] = true;
 				tested[eidbase + 1] = true;
-				discovered[vpairs[i].a] = discovered[vpairs[i].b] = true;
+				discovered[cursor[i].a] = discovered[cursor[i].b] = true;
 				ids.insert({eidbase, eidbase+1});
-
-				vid2time[vpairs[i].b] = pattern[i].time.b;
-				if (i == 0) {
-					vid2time[vpairs[i].a] = pattern[i].time.a;
-				}
 			}
 
 			// make heap
@@ -206,28 +187,20 @@ bool Gspan::scanGspan(const Pattern& _pattern) {
 					} else { // not found
 						if (discovered[added_edge.to]) {
 							// backward
-							if (!tested[added_edge.id] and (vid2time[i] > vid2time[added_edge.to])) {
+							if (!tested[added_edge.id]) {
 								ids_dic.insert(ids);
-								dcode.labels = Triplet(-1, added_edge.labels.y, -1);
-								dcode.time.set(vid2time[i], vid2time[added_edge.to]);
-								pattern.push_back(dcode);
-								min_pat = is_min.convert(pattern);
-								pkey.set(added_edge.labels.y,vid2time[added_edge.to]);
-								cursor.set(i,added_edge.to,added_edge.id,&(*it));
-								heap[min_pat][gid].push_back(cursor);
-								pattern.pop_back();
+								cursor.push_back(VertexPair(i,added_edge.to,added_edge.id, added_edge.labels.y));
+								auto pat_cur = is_min.convert(cursor, gid);
+								heap[pat_cur.first][gid].push_back(pat_cur.second);
+								cursor.pop_back();
 							}
 						} else {
 							// forward
 							ids_dic.insert(ids);
-							dcode.labels = Triplet(-1, added_edge.labels.y, added_edge.labels.z);
-							dcode.time.set(vid2time[i], maxtoc+1);
-							pattern.push_back(dcode);
-							min_pat = is_min.convert(pattern);
-							pkey.set(added_edge.labels.y,added_edge.labels.z);
-							cursor.set(i,added_edge.to,added_edge.id,&(*it));
-							heap[min_pat][gid].push_back(cursor);
-							pattern.pop_back();
+							cursor.push_back(VertexPair(i,added_edge.to,added_edge.id, added_edge.labels.y));
+							auto pat_cur = is_min.convert(cursor, gid);
+							heap[pat_cur.first][gid].push_back(pat_cur.second);
+							cursor.pop_back();
 						}
 						ids.erase(eidbase);
 						ids.erase(eidbase+1);

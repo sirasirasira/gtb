@@ -52,7 +52,7 @@ class Gspan {
 		size_t minsup;
 		size_t maxpat;
 
-		Pattern EdgeSimulation(const Pattern&, EdgeTracer&, ID);
+		Pattern EdgeSimulation(const Pattern&, const EdgeTracer&, ID);
 		bool scanGspan(const Pattern&);
 		void makeRoot(const vector<ID>&);
 		void one_edge_report(GraphToTracers& g2tracers);

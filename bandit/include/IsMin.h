@@ -5,8 +5,8 @@
 
 class IsMin {
 	public:
-		Pattern convert(Pattern& pattern);
+		pair<Pattern, EdgeTracer> convert(const EdgeTracer& tracer, ID gid);
 	private:
 		// const Pattern* pattern_ptr;
-		Pattern minChecker(Pattern& comp, Graph& g, Tracers& tracers);
+		pair<Pattern, EdgeTracer> minChecker(Pattern& comp, Graph& g, Tracers& tracers);
 };

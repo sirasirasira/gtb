@@ -50,6 +50,13 @@ inline bool operator < (const Pair& l, const Pair& r) {
 
 struct VertexPair : public Pair {
 	ID id;
+	int label;
+
+	VertexPair() {};
+	VertexPair(ID _a, ID _b, ID _id, int _label) : id(_id), label(_label) {
+		a = _a;
+		b = _b;
+	};
 };
 
 struct Edge {

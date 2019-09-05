@@ -3,6 +3,8 @@
 #include "IncludeLib.h"
 #include "Structures.h"
 
+
+/*
 struct EdgeTracer {
 	VertexPair vpair;
 	EdgeTracer* predec;
@@ -16,7 +18,9 @@ inline void EdgeTracer::set(ID a, ID b, ID id, EdgeTracer* pr) {
 	vpair.id = id;
 	predec = pr;
 }
+*/
 
+using EdgeTracer = vector<VertexPair>;
 using Tracers = vector<EdgeTracer>;
 using GraphToTracers = map<ID, Tracers>;
 using PairSorter = map<Pair, GraphToTracers>;
@@ -96,6 +100,7 @@ inline std::ostream& operator << (std::ostream& os, const Pattern pattern) {
 	return os;
 }
 
+/*
 inline Graph toGraph(const Pattern& codes) {
 	Graph g;
 	ID eid = 0;
@@ -108,6 +113,25 @@ inline Graph toGraph(const Pattern& codes) {
 		g[p.time.b].push_back(Edge(eid++, p.time.a, labels.reverse()));
 	}
 	g.num_of_edges = eid;
+	return g;
+}
+*/
+
+inline Graph toGraph(const EdgeTracer& tracer, const Graph& original_g) {
+	Graph g;
+	g.resize(original_g.size());
+	g.label = original_g.label;
+	for (auto vpair : tracer) {
+		Triplet labels(g.label[vpair.a], vpair.label, g.label[vpair.b]);
+		if (vpair.id % 2 == 0) {
+			g[vpair.a].push_back(Edge(vpair.id, vpair.b, labels));
+			g[vpair.b].push_back(Edge(vpair.id+1, vpair.a, labels.reverse()));
+		} else {
+			g[vpair.a].push_back(Edge(vpair.id, vpair.b, labels));
+			g[vpair.b].push_back(Edge(vpair.id-1, vpair.a, labels.reverse()));
+		}
+	}
+	g.num_of_edges = original_g.num_of_edges;
 	return g;
 }
 
