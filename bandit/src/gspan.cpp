@@ -42,7 +42,7 @@ void CLASS::makeRoot(const vector<ID>& targets) {
 
 // not minDFS
 Pattern CLASS::EdgeSimulation(const Pattern& _pattern, EdgeTracer& _tracer, ID gid){
-	 std::cout << "debug EdgeSimulation: " << _pattern << std::endl; // debug
+	// std::cout << "EdgeSimulation: " << _pattern << std::endl; // debug
 
 	Pattern pattern = _pattern;
 	EdgeTracer *tracer = &(_tracer);

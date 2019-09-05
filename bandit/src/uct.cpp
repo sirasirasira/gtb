@@ -9,11 +9,6 @@ extern Database db;
 void CLASS::run(const vector<ID>& _targets) {
 	targets = _targets;
 	db.gspan.clearUCB();
-	cache = db.gspan.getCache();
-	root = db.gspan.getRoot();
-	cout << &(db.gspan.getCache()) << endl << &cache << endl;
-	cout << typeid(db.gspan.getCache()).name() << endl << typeid(cache).name() << endl;
-	cout << &(db.gspan.getRoot()) << endl << &root << endl;
 	Pattern pattern;
 	vector<ID> posi;
 	double score;
@@ -59,6 +54,10 @@ void CLASS::selection(const Pattern& pattern) {
 	// std::cout << "selection : " << pattern << std::endl; // debug
 	path.push_back(pattern);
 	if (!cache[pattern].terminal) {
+		cout << "childs" << endl;
+		for(auto x: cache[pattern].childs) {
+			cout << x << " ucb " << cache[x].ucb << endl;
+		}
 		Pattern best_child;
 		double max_ucb = -DBL_MAX;
 		for (auto& c : cache[pattern].childs) {
@@ -73,17 +72,11 @@ void CLASS::selection(const Pattern& pattern) {
 
 void CLASS::expansion() {
 	const Pattern pattern = path[path.size()-1];
-	 std::cout << "expansion : " << pattern << endl; // debug
+	 std::cout << "expansion: " << pattern << endl; // debug
 	if (cache[pattern].count >= setting.threshold) {
 		if (!cache[pattern].scan) {
 			if (db.gspan.scanGspan(pattern)) {
 				cache[pattern].terminal = false;
-	cache = db.gspan.getCache();
-	cout << "debug" << endl;
-	cout << "childs size: " <<cache[pattern].childs.size() << endl;
-	for (auto x : cache[pattern].childs) {
-		cout << x << endl;
-	}
 				path.push_back(cache[pattern].childs[0]);
 			}
 		} else {
@@ -143,6 +136,7 @@ void CLASS::backpropagation(double score) {
 		double ave = cache[path[i]].sum_score / count;
 		double p_count = cache[path[i-1]].count + 1;
 		cache[path[i]].ucb = ave + setting.c * sqrt(2 * log(p_count) / count);
+		cout << "backpropagation: " << endl << "count: " << count << "p_count: " << p_count << "sum_score: " << cache[path[i]].sum_score << "ave: " << ave << "ucb: " << cache[path[i]].ucb << endl;
 	}
 	cache[root].count++;
 }

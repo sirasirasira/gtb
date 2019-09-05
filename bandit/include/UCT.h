@@ -6,12 +6,14 @@
 
 class UCT {
 	public:
+		UCT(map<Pattern, CacheRecord>& _cache, const Pattern& _root) : cache(_cache), root(_root) {
+		}
 		void run(const vector<ID>& _targets);
 
 	private:
 		vector<ID> targets;
-		map<Pattern, CacheRecord> cache;
-		Pattern root;
+		map<Pattern, CacheRecord>& cache;
+		const Pattern& root;
 		vector<Pattern> path;
 
 		void selection(const Pattern&);

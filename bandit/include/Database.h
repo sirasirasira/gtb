@@ -20,8 +20,8 @@ struct Database {
 	GradientBoosting gradient_boosting;
 	Planter planter;
 	Spliter spliter;
-	UCT uct;
 	Gspan gspan;
+	UCT uct = UCT(gspan.getCache(), gspan.getRoot());
 	Finder finder;
 	Evaluater eva;
 };
