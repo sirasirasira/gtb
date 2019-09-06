@@ -49,7 +49,7 @@ void CLASS::selection(const Pattern& pattern) {
 				if (cache[c].count == 0) {
 					ucb = DBL_MAX;
 				} else {
-					ucb = (cache[c].sum_score / cache[c].count) + (setting.c * sqrt(2 * log(cache[pattern].count / cache[c].count)));
+					ucb = (cache[c].sum_score / cache[c].count) + setting.c * (sqrt(2 * log(cache[pattern].count) / cache[c].count));
 				}
 				if (ucb > max_ucb) {
 					best_child = c;
