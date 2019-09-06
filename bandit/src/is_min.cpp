@@ -42,27 +42,26 @@ pair<Pattern, EdgeTracer> CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tr
 
 	map<Pair, Tracers> b_heap;
 	map<Pair, Tracers> f_heap;
-	EdgeTracer cursor;
 	Pair pkey;
 
 	for (auto itr = tracers.begin(); itr != tracers.end(); itr++) {
 		// an instance (a sequence of vertex pairs) as vector "vpair"
-		cursor = *itr;
+		EdgeTracer	cursor = *itr;
 		//vector<bool> discovered(g.size());
 		//vector<bool> tested(g.num_of_edges);
 		vector<bool> discovered(g.size(), false); // as bool vector
 		vector<bool> tested(g.num_of_edges, false); // as bool vector
 
-		for (int i = cursor.size()-1; i >= 0; --i) {
-			tested[cursor[i].id] = true;
-			discovered[cursor[i].a] = discovered[cursor[i].b] = true;
+		//for (int i = cursor.size()-1; i >= 0; --i) {
+		for (auto& vpair : cursor) {
+			tested[vpair.id] = true;
+			discovered[vpair.a] = discovered[vpair.b] = true;
 		}
 
-		Pair& rm_vpair = cursor[rm_path_index[0]];
+		Pair rm_vpair = cursor[rm_path_index[0]];
 
 		// grow from the right most vertex
-		for (size_t i = 0; i < g[rm_vpair.b].size(); i++) {
-			Edge& added_edge = g[rm_vpair.b][i];
+		for (auto& added_edge : g[rm_vpair.b]) {
 			// backward from the right most vertex
 			for (size_t j = 1; j < rm_path_index.size(); j++) {
 				size_t idx = rm_path_index[j];
@@ -108,19 +107,17 @@ pair<Pattern, EdgeTracer> CLASS::minChecker(Pattern& comp, Graph& g, Tracers& tr
 	for (size_t j = 0; j < rm_path_index.size(); j++) {
 		int i = rm_path_index[j];
 		for (auto itr = tracers.begin(); itr != tracers.end(); itr++) {
-			cursor = *itr;
+			EdgeTracer cursor = *itr;
 			vector<bool> discovered(g.size(), false); // as bool vector
 			vector<bool> tested(g.num_of_edges, false); // as bool vector
 
-			for (int k = cursor.size() - 1; k >= 0; k--) {
-				tested[cursor[k].id] = true;
-				discovered[cursor[k].a] = discovered[cursor[k].b] = true;
+			for (auto& vpair : cursor) {
+				tested[vpair.id] = true;
+				discovered[vpair.a] = discovered[vpair.b] = true;
 			}
 
-			Pair& from_vpair = cursor[i];
-
-			for (size_t k = 0; k < g[from_vpair.a].size(); k++) {
-				Edge& added_edge = g[from_vpair.a][k];
+			Pair from_vpair = cursor[i];
+			for (auto& added_edge : g[from_vpair.a]) {
 				if (minlabel > added_edge.labels.z or discovered[added_edge.to]) continue;
 				if (comp[i].labels <= added_edge.labels) {
 					from = comp[i].time.a;
