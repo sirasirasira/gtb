@@ -15,14 +15,11 @@ void CLASS::run(const vector<ID>& _targets) {
 	double score;
 
 	for (unsigned int i = 0; i < setting.iteration; i++) {
-		path = {};
-		selection(root);
-		expansion();
-		if (update()) {
-			//TODO
-			backpropagation(-DBL_MAX);
-			continue;
+		path = {root};
+		if(!selection(root)) { // all node is searched
+			break;
 		}
+		expansion();
 		pattern = path[path.size()-1];
 		pattern = simulation(pattern);
 		if (cache.find(pattern) == cache.end()) {
@@ -35,30 +32,65 @@ void CLASS::run(const vector<ID>& _targets) {
 	}
 }
 
-void CLASS::selection(const Pattern& pattern) {
+bool CLASS::selection(const Pattern& pattern) {
 	// std::cout << "selection: " << pattern << std::endl; // debug
-	path.push_back(pattern);
-	if (!cache[pattern].terminal) {
-		Pattern best_child;
-		double ucb;
-		double max_ucb = -DBL_MAX;
-		for (auto& c : cache[pattern].childs) {
-			if (cache[c].prune) {
-				continue;
-			} else {
-				if (cache[c].count == 0) {
-					ucb = DBL_MAX;
-				} else {
-					ucb = (cache[c].sum_score / cache[c].count) + setting.c * (sqrt(2 * log(cache[pattern].count) / cache[c].count));
-				}
-				if (ucb > max_ucb) {
+	if (cache[pattern].terminal) return true;
+
+	Pattern best_child;
+	double max_ucb = -DBL_MAX;
+	double ucb;
+	for (auto& c : cache[pattern].childs) {
+		if (cache[c].prune) {
+			continue;
+		} else {
+			if (cache[c].count == 0) {
+				if (update(c)) { // prune
+					continue;
+				} else { // not prune
 					best_child = c;
-					max_ucb = ucb;
+					break;
 				}
+			} else {
+				ucb = (cache[c].sum_score / cache[c].count)
+					+ setting.exploration_strength
+					* (sqrt(2 * log(cache[pattern].count) / cache[c].count));
+			}
+
+			if (ucb > max_ucb) {
+				best_child = c;
+				max_ucb = ucb;
 			}
 		}
-		selection(best_child);
 	}
+
+	if (best_child.size() != 0) {
+		path.push_back(best_child);
+		return selection(best_child);
+	} else {
+		if (path.size() == 1) { // all node is pruned
+			return false;
+		} else {
+			cache[pattern].prune = true;
+			path.pop_back();
+			return selection(path[path.size()-1]);
+		}
+	}
+}
+
+bool CLASS::update(const Pattern& pattern) {
+	vector<ID> posi;
+	double score;
+	double bound;
+	posi = db.gspan.getPosiIds(cache[pattern].g2tracers);
+	score = Calculator::score(db.ys, targets, posi);
+	db.spliter.update(pattern, score);
+	bound = Calculator::bound(db.ys, targets, posi);
+	cache[pattern].bound = bound;
+	if (db.spliter.isBounded(bound)){
+		cache[pattern].prune = true;
+		return true;
+	}
+	return false;
 }
 
 void CLASS::expansion() {
@@ -68,45 +100,33 @@ void CLASS::expansion() {
 		if (!cache[pattern].scan) {
 			if (db.gspan.scanGspan(pattern)) {
 				cache[pattern].terminal = false;
-				path.push_back(cache[pattern].childs[0]);
+				expand_selection(pattern);
 			}
 		} else {
 			if (cache[pattern].childs.size()) {
 				cache[pattern].terminal = false;
-				path.push_back(cache[pattern].childs[0]);
+				expand_selection(pattern);
 			}
 		}
 	}
 }
 
-bool CLASS::update() {
-	vector<ID> posi;
-	double score;
-	double bound;
-	bool pruning = false;
-	int pruning_index;
-	for (unsigned int i = 0; i < path.size(); i++) {
-		if (pruning) {
-			cache[path[i]].prune = true;
-		} else {
-			if (cache[path[i]].count == 0) {
-				posi = db.gspan.getPosiIds(cache[path[i]].g2tracers);
-				score = Calculator::score(db.ys, targets, posi);
-				db.spliter.update(path[i], score);
-				bound = Calculator::bound(db.ys, targets, posi);
-				cache[path[i]].bound = bound;
-				if (db.spliter.isBounded(bound)){
-					cache[path[i]].prune = true;
-					pruning = true;
-					pruning_index = i;
-				}
-			}
+void CLASS::expand_selection(const Pattern& pattern) {
+	Pattern selected_child;
+	for (auto& c : cache[pattern].childs) {
+		if (update(c)) { // prune
+			continue;
+		} else { // not prune
+			selected_child = c;
+			break;
 		}
 	}
-	if (pruning) {
-		path.resize(pruning_index);
+
+	if (selected_child.size() != 0) {
+		path.push_back(selected_child);
+	} else {
+		cache[pattern].prune = true;
 	}
-	return pruning;
 }
 
 Pattern CLASS::simulation(const Pattern& pattern) {

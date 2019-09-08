@@ -42,7 +42,7 @@ vector<ID> CLASS::run(const vector<ID>& _targets) {
 	return Calculator::setIntersec(targets, posi);
 }
 
-void CLASS::update(Pattern& pattern, double score) {
+void CLASS::update(const Pattern& pattern, double score) {
 	if (score < min_score ) { // old pattern may be used (this func is called from gspan)
 		min_score = score;
 		best_pattern = pattern;
@@ -50,6 +50,8 @@ void CLASS::update(Pattern& pattern, double score) {
 }
 
 bool CLASS::isBounded(double min_bound) {
+	// cout << "isBounded" << endl;
+	// cout << "min_score: " << min_score << " bound: " << min_bound << endl;
 	if (min_score <= min_bound) {
 		return true;
 	} else {

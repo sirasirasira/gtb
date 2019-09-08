@@ -12,7 +12,8 @@ struct Setting {
 	size_t max_depth = -1;
 	size_t iteration = 100;
 	size_t threshold = 1;
-	double c = 1;
+	double exploration_strength = 1;
+	double stopping_rate = 1 - pow(10 , -1);
 
 	void print() {
 		cout
@@ -24,7 +25,8 @@ struct Setting {
 			<< " max_depth " << max_depth
 			<< " iteration " << iteration
 			<< " threshold " << threshold
-			<< " c " << c
+			<< " exploration_strength " << exploration_strength
+			<< " stopping_rate " << stopping_rate
 			<< endl;
 	}
 

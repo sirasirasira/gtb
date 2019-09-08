@@ -3,6 +3,7 @@
 
 #include "Database.h"
 extern Database db;
+extern Setting setting;
 
 void CLASS::makeRoot(const vector<ID>& targets) {
 	// std::cout << "makeRoot" << std::endl; // debug
@@ -128,8 +129,7 @@ bool CLASS::stop_condition(const Pattern pattern, bool valid_flg) {
 		// std::cout << "no childs" << std::endl;
 		return true;
 	}
-	//TODO
-	if (Dice::p(0.1)) {
+	if (Dice::p(1 - pow(setting.stopping_rate, pattern.size()))) {
 		// std::cout << "probability" << std::endl;
 		return true;
 	}

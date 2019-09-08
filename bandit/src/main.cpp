@@ -81,11 +81,12 @@ int main(int argc, char** argv) {
 		+ " [-d max_depth]"
 		+ " [-i iteration]"
 		+ " [-h threshold]"
-		+ " [-c ucb_parameter]"
+		+ " [-c exploration_strength]"
+		+ " [-p stopping_rate]"
 		+ " traing_data_file"
 		+ " test_data_file"
 		+ "";
-	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:i:h:c:re")) != -1) {
+	while ((opt = getopt(argc, argv, "m:x:t:s:n:d:i:h:c:p:re")) != -1) {
 		switch (opt) {
 			case 'm':
 				//setting.minsup = atoi(optarg);
@@ -113,7 +114,10 @@ int main(int argc, char** argv) {
 				setting.threshold = atoi(optarg);
 				break;
 			case 'c':
-				setting.c = atof(optarg);
+				setting.exploration_strength = atof(optarg);
+				break;
+			case 'p':
+				setting.stopping_rate = 1 - pow(10, atoi(optarg)) ;
 				break;
 			default:
 				std::cerr << usage << std::endl;

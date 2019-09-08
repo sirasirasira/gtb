@@ -7,7 +7,7 @@ class Spliter {
 	public:
 		void prepare(const vector<ID>& _targets);
 		vector<ID> run(const vector<ID>& _targets);
-		void update(Pattern& pattern, double score);
+		void update(const Pattern& pattern, double score);
 		bool isBounded(double min_bound);
 		inline bool valid() {
 			return valid_flg;
