@@ -68,7 +68,7 @@ void CLASS::edgeGrow(GraphToTracers& g2tracers, bool in_cache_flg) {
 G_skip:
 
 	vector<ID> posi = getPosiIds(g2tracers);
-	spliter->update(pattern, posi); 
+	spliter->update(pattern, posi); //TODO frontier pattern calc two times
 	if (spliter->isBounded(posi)) {
 		// std::cout << "debug cut bounded" << std::endl; // debug
 		return;
