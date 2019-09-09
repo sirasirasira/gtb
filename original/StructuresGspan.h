@@ -67,6 +67,28 @@ inline bool operator != (const DFSCode& l, const DFSCode& r) {
 	return !(l == r);
 }
 
+inline bool operator < (const DFSCode& l, const DFSCode& r) { // original gspan order
+	if(l.time.a != r.time.a) return l.time.a > r.time.a;
+	if(l.time.b != r.time.b) return l.time.b < r.time.b;
+	if(l.labels.x != r.labels.x) return l.labels < r.labels;
+	if(l.labels.y != r.labels.y) return l.labels.y < r.labels.y;
+	return (l.labels.z < r.labels.z);
+}
+
+inline bool operator < (const Pattern& l, const Pattern& r) {
+	for (size_t i = 0; i < l.size() and i < r.size(); i++) {
+		if (l[i] == r[i]) {
+			continue;
+		}
+		if (l[i] < r[i]) return true;
+		if (r[i] < l[i]) return false;
+	}
+	if (l.size() < r.size()) return true;
+	if (r.size() < l.size()) return false;
+	return false;
+}
+
+/*
 inline bool operator < (const Pattern& l, const Pattern& r) { // FIXME this order differs from gspan DFSCode
 	for (size_t i = 0; i < l.size() and i < r.size(); i++) {
 		if (l[i] == r[i]) {
@@ -81,6 +103,7 @@ inline bool operator < (const Pattern& l, const Pattern& r) { // FIXME this orde
 	if (r.size() < l.size()) return false;
 	return false;
 }
+*/
 
 inline std::ostream& operator << (std::ostream& os, const Pattern pattern) {
 	if (pattern.empty()) return os;
