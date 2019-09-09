@@ -82,8 +82,8 @@ void CLASS::searchEnum() {
 		bef_pattern = pattern;
 	}
 	
-	std::shuffle(frontier_set.begin(), frontier_set.end(), Dice::mt);
-	//std::reverse(frontier_set.begin(), frontier_set.end());
+	//std::shuffle(frontier_set.begin(), frontier_set.end(), Dice::mt);
+	std::reverse(frontier_set.begin(), frontier_set.end());
 	for (auto ptr : frontier_set) {
 		db.gspan.run(ptr);
 	}

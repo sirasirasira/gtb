@@ -148,8 +148,8 @@ int main(int argc, char** argv) {
 
 	if (setting.minsup == 0) {
 		setting.minsup = 1;
-	} else {
-		setting.minsup = int(db.gdata.num_train * setting.minsup * 0.01);
+	} else if (0 < setting.minsup and setting.minsup < 1) {
+		setting.minsup = int(db.gdata.num_train * setting.minsup);
 	}
 	setting.print();
 
