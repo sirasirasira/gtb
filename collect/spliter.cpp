@@ -66,7 +66,7 @@ void CLASS::search() {
 }
 
 void CLASS::search_childs(const Pattern& pattern) {
-	auto child = pattern;
+	Pattern child = pattern;
 	for (auto& child_dfs : cache[pattern].childs) {
 		child.push_back(child_dfs);
 		const auto& g2tracers = cache[child].g2tracers;
@@ -74,6 +74,7 @@ void CLASS::search_childs(const Pattern& pattern) {
 		update(child, posi);
 		if (isBounded(posi)) {
 			// cout << "Prune some edge pattern" << endl;
+			child.pop_back();
 			continue;
 		}
 		if (cache[child].scan) {
