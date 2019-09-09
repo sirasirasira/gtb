@@ -23,7 +23,7 @@ void CLASS::prepare(const vector<ID>& _targets) {
 	db.gspan.maxpat = 3;
 	db.gspan.run();
 	db.gspan.maxpat = setting.maxpat;
-	//std::cout << "prepare cache size: " << db.gspan.getCache().size() << std::endl;
+	std::cout << "prepare cache size: " << cache.size() << std::endl;
 }
 
 vector<ID> CLASS::run(const vector<ID>& _targets) {
@@ -53,7 +53,10 @@ void CLASS::search() {
 		const auto& g2tracers = cache[pattern].g2tracers;
 		vector<ID> posi = db.gspan.getPosiIds(g2tracers);
 		update(pattern, posi);
-		if (isBounded(posi)) continue;
+		if (isBounded(posi)) {
+			// cout << "Prune one edge pattern" << endl;
+			continue;
+		}
 		if (cache[pattern].scan) {
 			search_childs(pattern);
 		} else {
@@ -69,7 +72,10 @@ void CLASS::search_childs(const Pattern& pattern) {
 		const auto& g2tracers = cache[child].g2tracers;
 		vector<ID> posi = db.gspan.getPosiIds(g2tracers);
 		update(child, posi);
-		if (isBounded(posi)) continue;
+		if (isBounded(posi)) {
+			// cout << "Prune some edge pattern" << endl;
+			continue;
+		}
 		if (cache[child].scan) {
 			search_childs(child);
 		} else {
