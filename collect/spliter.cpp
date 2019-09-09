@@ -20,9 +20,8 @@ void CLASS::prepare(const vector<ID>& _targets) {
 	// Debug::IDs(targets); // debug
 	db.gspan.setSpliterPtr(this);
 	db.gspan.minsup = setting.minsup;
-	db.gspan.maxpat = 3;
-	db.gspan.run();
 	db.gspan.maxpat = setting.maxpat;
+	db.gspan.run();
 	std::cout << "prepare cache size: " << cache.size() << std::endl;
 }
 

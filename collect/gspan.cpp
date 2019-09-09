@@ -33,11 +33,6 @@ void CLASS::run() {
 		e1patterns.push_back(pattern);
 		vector<DFSCode> childs;
 		cache.insert({pattern, CacheRecord(itr->second, childs)});
-		vector<ID> posi = getPosiIds(itr->second);
-		spliter->update(pattern, posi);
-		if (!spliter->isBounded(posi)) {
-			edgeGrow();
-		}
 	}
 }
 
