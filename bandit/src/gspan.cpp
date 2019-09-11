@@ -40,6 +40,7 @@ void CLASS::makeRoot(const vector<ID>& targets) {
 		cache[root].childs.push_back(pattern);
 		cache.insert({pattern, CacheRecord(itr->second, childs)});
 	}
+	cout << "1 edge graphs size: " << cache.size()-1 << endl;
 }
 
 // not minDFS, not support

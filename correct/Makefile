@@ -5,7 +5,7 @@ CXXFLAGS_BASE = -W -Wall -std=c++11 -MMD -MP -MF $(D_DIR)/$*.d
 CXXFLAGS = -O3 -DNDEBUG $(CXXFLAGS_BASE)
 #CXXFLAGS = -pg -g $(CXXFLAGS_BASE)
 LDFLAGS = -pg
-TARGETS = a.out
+TARGETS = gtb_correct
 SRCS = $(wildcard *.cpp)
 OBJDIR = .objs
 OBJS = $(addprefix $(OBJDIR)/, $(SRCS:.cpp=.o))
