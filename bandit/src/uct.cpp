@@ -54,6 +54,7 @@ bool CLASS::selection(const Pattern& pattern) {
 				ucb = (cache[c].sum_score / cache[c].count)
 					+ setting.exploration_strength
 					* (sqrt(2 * log(cache[pattern].count) / cache[c].count));
+				ucb -= setting.bound_rate * cache[c].bound; //TODO
 			}
 
 			if (ucb > max_ucb) {
